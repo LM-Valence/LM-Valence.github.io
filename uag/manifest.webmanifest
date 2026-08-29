@@ -1,0 +1,51 @@
+{
+  "id": "./lm-pilot-pro-uag-lm-valence",
+  "name": "LM Pilot Pro UAG — Leroy Merlin Valence",
+  "short_name": "LM Pilot UAG",
+  "description": "Centre de pilotage logistique UAG — Entrepôt Valence",
+  "lang": "fr",
+  "start_url": "/lm-pilot-pro/uag/?source=pwa-uag-v4",
+  "scope": "/lm-pilot-pro/uag/",
+  "display": "standalone",
+  "display_override": [
+    "standalone"
+  ],
+  "background_color": "#033d2d",
+  "theme_color": "#075c43",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "../uag/icon-uag-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../uag/icon-uag-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../uag/icon-uag-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Accueil LM Pilot Pro UAG",
+      "short_name": "Accueil UAG",
+      "description": "Ouvrir l’accueil UAG",
+      "url": "/lm-pilot-pro/uag/",
+      "icons": [
+        {
+          "src": "./icon-uag-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
