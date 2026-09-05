@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#054b36">
   <meta name="description" content="LM Pilot Pro UAD — Centre de pilotage logistique — Entrepôt Valence">
-  <link rel="manifest" href="./manifest.webmanifest?v=2">
+  <link rel="manifest" href="./manifest.webmanifest?v=3">
   <link rel="icon" type="image/png" href="../icon-192.png">
   <link rel="apple-touch-icon" href="../icon-192.png">
   <title>LM Pilot Pro UAD</title>
@@ -33,25 +33,47 @@
   <main class="shell">
     <div id="loading" class="loading">
       <div class="splash-content">
-        <img class="splash-image" src="../splash-lm-pilot-pro.jpg?v=2" alt="LM Pilot Pro UAD — Centre de pilotage logistique — Entrepôt Valence">
+        <img class="splash-image" src="../splash-lm-pilot-pro.jpg?v=3" alt="LM Pilot Pro UAD — Centre de pilotage logistique — Entrepôt Valence">
       </div>
       <div class="loading-footer">
         <div class="loading-status"><span class="loading-dot"></span><span>Leroy Merlin Valence · Chargement de LM Pilot Pro UAD</span></div>
         <div class="progress"></div>
       </div>
     </div>
-    <iframe id="lmFrame" title="LM Pilot Pro UAD" allow="fullscreen; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <iframe id="lmFrame" name="lmPilotFrame" title="LM Pilot Pro UAD" allow="fullscreen; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </main>
   <script>
     const APPS_SCRIPT_URL="https://script.google.com/a/macros/leroymerlin.fr/s/AKfycbyfeUzE6OUSzY9TzVSyoyhF9HgNavVBI4dCBXQYRTZ2qSGQjyIa3d1xWxfN05o2TwYUOw/exec";
-    function targetUrl(){const q=new URLSearchParams(window.location.search);const page=(q.get('page')||'').trim();return page?APPS_SCRIPT_URL+'?page='+encodeURIComponent(page):APPS_SCRIPT_URL}
+    const ROUTES_AUTORISEES=new Set(['','accueil','pilotage','tv','dashboard','equite','suivi-equite','suivi-equite-rotation','equipe','saisie-kpi']);
+    function routeCourante(){
+      const q=new URLSearchParams(window.location.search);
+      const page=(q.get('page')||'').trim().toLowerCase();
+      return ROUTES_AUTORISEES.has(page)?page:'';
+    }
+    function targetUrl(){
+      const page=routeCourante();
+      return page?APPS_SCRIPT_URL+'?page='+encodeURIComponent(page):APPS_SCRIPT_URL;
+    }
     const frame=document.getElementById('lmFrame');
     const loading=document.getElementById('loading');
     const splashStart=Date.now();
     const MIN_SPLASH_TIME=1500;
     frame.src=targetUrl();
-    frame.addEventListener('load',()=>{const remaining=Math.max(0,MIN_SPLASH_TIME-(Date.now()-splashStart));setTimeout(()=>loading.classList.add('hidden'),remaining)});
-    if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js?v=2',{updateViaCache:'none'}).then(reg=>reg.update()).catch(console.error)})}
+    frame.addEventListener('load',()=>{
+      const remaining=Math.max(0,MIN_SPLASH_TIME-(Date.now()-splashStart));
+      setTimeout(()=>loading.classList.add('hidden'),remaining);
+    });
+    window.addEventListener('pageshow',()=>{
+      const attendu=targetUrl();
+      if(!frame.src) frame.src=attendu;
+    });
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('./service-worker.js?v=3',{updateViaCache:'none'})
+          .then(reg=>reg.update())
+          .catch(console.error);
+      });
+    }
   </script>
 </body>
 </html>
