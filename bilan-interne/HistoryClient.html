@@ -1,0 +1,162 @@
+/* Bilan Valence interne — chargement/sauvegarde sur Google Sheets dédié.
+ * Communication google.script.run : aucune clef publique, aucune API externe.
+ * L'accès est contrôlé par le déploiement DOMAIN de Google Workspace.
+ */
+(function () {
+  'use strict';
+  const googleRun = window.google?.script?.run;
+  const el = id => document.getElementById(id);
+  const panel = el('historySharedPanel');
+  const status = el('historySharedStatus');
+  const open = el('historySharedOpen');
+  const form = el('historySharedForm');
+  const importer = el('historyImport');
+  const date = el('date');
+  if (!panel || !status || !date) return;
+  panel.hidden=false;
+  if(form) form.hidden=true;
+  if(open) {open.hidden=false;open.textContent='Actualiser';}
+  const state={
+    ready:false,loading:false,requested:0,forDate:'',
+    rows:{},saving:false,lastSaved:''
+  };
+  function message(value,tone='idle') {
+    status.textContent=value;
+    panel.dataset.status=tone;
+  }
+  function rpc(method,arg) {
+    return new Promise((resolve,reject)=>{
+      if(!googleRun) {
+        reject(new Error('Connexion Google interne indisponible'));return;
+      }
+      const runner=googleRun.withSuccessHandler(resolve).withFailureHandler(err=>
+        reject(new Error(err?.message || 'Service temporairement indisponible')));
+      if(method==='read')runner.chargerHistoriqueBilan(arg);
+      else if(method==='save')runner.enregistrerReliquatsBilan(arg);
+      else reject(new Error('Opération non autorisée'));
+    });
+  }
+  function rowOK(r) {
+    return r && typeof r.date==='string' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(r.date) &&
+      Number.isSafeInteger(r.l_picks)&&r.l_picks>=0&&
+      Number.isSafeInteger(r.r_picks)&&r.r_picks>=0&&
+      Number.isSafeInteger(r.revision)&&r.revision>=1;
+  }
+  async function refresh() {
+    const key=date.value,seq=++state.requested;
+    state.loading=true;
+    message('Chargement de l’historique commun…','loading');
+    try {
+      const results=await rpc('read',key);
+      if(seq!==state.requested||key!==date.value)return false;
+      if(!Array.isArray(results))throw Error('Historique non reconnu');
+      const next={};
+      for(const r of results)if(rowOK(r))
+        next[r.date]={
+          l_picks:String(r.l_picks),r_picks:String(r.r_picks),
+          revision:r.revision,updated_at:r.updated_at
+        };
+      state.rows=next;state.forDate=key;state.ready=true;
+      message('Historique commun à jour · '+Object.keys(next).length+' jour(s)','ok');
+      if(importer) importer.hidden = !oldDaysToImport().length;
+      return true;
+    } catch(error) {
+      if(seq!==state.requested)return false;
+      state.ready=false;
+      message('Historique commun indisponible · Le partage PNG reste possible','error');
+      return false;
+    } finally {
+      if(seq===state.requested)state.loading=false;
+    }
+  }
+  window.sharedHistoryRows=function(day) {
+    if(!state.ready || day!==state.forDate)return null;
+    const rows={...state.rows};
+    // L'image représente les données saisies aujourd'hui,
+    // même avant la sauvegarde de cette journée.
+    const l=el('l_picks')?.value.trim() || '';
+    const r=el('r_picks')?.value.trim() || '';
+    if(/^\d+$/.test(l)&&/^\d+$/.test(r)&&
+      Number.isSafeInteger(Number(l))&&Number.isSafeInteger(Number(r))) {
+      rows[day]={...(rows[day]||{}),l_picks:l,r_picks:r};
+    }
+    return rows;
+  };
+  async function saveOne(input) {
+    const result=await rpc('save',input);
+    if(result?.ok && rowOK(result.record)) {
+      state.rows[input.date]={
+        l_picks:String(result.record.l_picks),
+        r_picks:String(result.record.r_picks),
+        revision:result.record.revision,
+        updated_at:result.record.updated_at
+      };
+    }
+    return result;
+  }
+  window.sharedHistoryPublish=async function () {
+    if(state.saving)return;
+    const day=date.value,l=el('l_picks')?.value.trim()||'',
+      r=el('r_picks')?.value.trim()||'';
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(day) ||
+      !/^\d+$/.test(l)||!/^\d+$/.test(r) ||
+      Number(l)>10000000 || Number(r)>10000000) {
+      message('Historique : renseigner les prises UAG et UAD','error');
+      return;
+    }
+    state.saving=true;
+    try {
+      if(!state.ready||state.forDate!==day) {
+        if(!await refresh())return;
+      }
+      const before=state.rows[day];
+      if(before&&Number(before.l_picks)===Number(l)&&
+        Number(before.r_picks)===Number(r))return;
+      message('Enregistrement du bilan dans l’historique commun…','loading');
+      const answer=await saveOne({
+        date:day,l_picks:Number(l),r_picks:Number(r),
+        revision:before?.revision??null
+      });
+      if(answer?.ok)message('Historique commun enregistré · '+day.split('-').reverse().join('/'),'ok');
+      else if(answer?.code==='CONFLIT')
+        message('Un autre manager a déjà renseigné ce jour · Actualiser avant correction','error');
+      else message('Historique non confirmé, réessayer','error');
+    } catch(error) {
+      message('Historique non enregistré · Le PNG reste disponible','error');
+    } finally {state.saving=false;}
+  };
+  function oldDaysToImport() {
+    const old=typeof records==='function'?records():{};
+    return Object.entries(old)
+      .filter(([d,r])=> /^\d{4}-\d{2}-\d{2}$/.test(d)&&
+        /^\d+$/.test(String(r.l_picks??''))&&
+        /^\d+$/.test(String(r.r_picks??''))&& !state.rows[d])
+      .sort((a,b)=>a[0].localeCompare(b[0])).slice(-6);
+  }
+  if(importer)importer.addEventListener('click',async()=>{
+    const batch=oldDaysToImport();
+    if(!batch.length)return;
+    if(!confirm('Importer les '+batch.length+
+      ' ancien(s) bilan(s) disponibles sur CE téléphone ? Aucun jour déjà commun ne sera écrasé.'))return;
+    importer.disabled=true;
+    let added=0,skipped=0;
+    for(const [d,r] of batch) {
+      try {
+        const ans=await saveOne({
+          date:d,l_picks:Number(r.l_picks),r_picks:Number(r.r_picks),revision:null
+        });
+        if(ans?.ok)added++;else skipped++;
+      }catch(error){skipped++;}
+    }
+    await refresh();
+    importer.disabled=false;
+    message('Import : '+added+' jour(s) ajouté(s), '+skipped+' ignoré(s)','ok');
+  });
+  if(open)open.addEventListener('click',refresh);
+  date.addEventListener('change',refresh);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'&&!state.loading)refresh();
+  });
+  refresh();
+})();
