@@ -312,7 +312,7 @@ renderCanvas = function renderPremiumBilan(){
         if(barHeight>0)rr(b.x-barWidth/2,base-barHeight,barWidth,barHeight,2,b.fill);
         // Valeur au-dessus de chaque barre : 6 579, 8 252, etc.
         const label=fnum(b.raw);
-        const fs=historyPoints.length>=4?11:12;
+        const fs=historyPoints.length>=4?14:15;
         fit(label,b.x,Math.max(750,base-barHeight-10),
           Math.max(38,slot*.40),fs,b.fill,800,'center',10);
       }
@@ -325,7 +325,7 @@ renderCanvas = function renderPremiumBilan(){
     const summary='Dernier bilan '+lastDate.slice(8,10)+'/'+lastDate.slice(5,7)+
       ' : UAG '+fnum(lastLeft)+'  ·  UAD '+fnum(lastRight)+
       '  ·  Total '+fnum(lastLeft+lastRight);
-    fit(summary,1052,838,505,12,P.navy,700,'left',10);
+    fit(summary,1052,838,505,14,P.navy,700,'left',11);
   }
   line(20,870,1580,870,'#cfdde3');
   txt('ENTREPÔT VALENCE  |  Performance  ·  Sécurité  ·  Passation managers',
