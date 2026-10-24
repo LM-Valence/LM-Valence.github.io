@@ -92,6 +92,25 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')hideShareHelp()});
 const bilanLink='https://lm-valence.github.io/bilan/';
 // Android supports launching Chrome from a direct user click on an intent link.
 const intentChrome='intent://lm-valence.github.io/bilan/#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(bilanLink)+';end';
+// Tentative d'ouverture directe de Chrome, depuis le clic réel du manager.
+// Le navigateur Android peut choisir de bloquer les liens intent://.
+function openChromeDirectly(){
+ if(!/Android/i.test(navigator.userAgent)){
+   window.location.assign(bilanLink);return;
+ }
+ let left=false;
+ const onHide=()=>{if(document.visibilityState==='hidden')left=true};
+ document.addEventListener('visibilitychange',onHide,{once:true});
+ // Location navigation runs synchronously under the user's click.
+ window.location.href=intentChrome;
+ setTimeout(()=>{
+   document.removeEventListener('visibilitychange',onHide);
+   if(!left&&document.visibilityState==='visible'){
+     toast('Si Chrome ne s’ouvre pas, utilisez le menu ⋮ du navigateur puis « Ouvrir dans Chrome ».');
+   }
+ },1800);
+}
+
 $('launchChrome').href=/Android/i.test(navigator.userAgent)?intentChrome:bilanLink;
 $('copyShareLink').addEventListener('click',async()=>{
  try{
@@ -107,7 +126,7 @@ $('share').addEventListener('click',()=>{
  const btn=$('share');
  if(btn.disabled)return;
  // A browser without Web Share cannot open Android's native photo-sharing chooser.
- if(typeof navigator.share!=='function'){showShareHelp();return;}
+ if(typeof navigator.share!=='function'){openChromeDirectly();return;}
  try{
   if(!(img.complete&&img.naturalWidth&&aerial.complete&&aerial.naturalWidth)){
    toast('Le visuel se prépare. Réessayez dans un instant.');return;
@@ -116,24 +135,24 @@ $('share').addEventListener('click',()=>{
   // Encode synchronously so that navigator.share keeps the Android tap activation.
   const file=pngFileForShare();
   if(navigator.canShare&&!navigator.canShare({files:[file]})){
-    btn.disabled=false;btn.textContent='↗ Partager · Teams ou e-mail';showShareHelp();return;
+    btn.disabled=false;btn.textContent='↗ Partager · Teams ou e-mail';openChromeDirectly();return;
   }
   const sharing=navigator.share({files:[file],title:'Bilan de fin de journée · Entrepôt Valence',text:'Bilan UAD / UAG du '+dt($('date').value)});
   Promise.resolve(sharing).catch(e=>{
    if(e?.name==='AbortError')return;
-   if(e?.name==='NotAllowedError'||e?.name==='TypeError')showShareHelp();
+   if(e?.name==='NotAllowedError'||e?.name==='TypeError')toast('Ce navigateur bloque le partage d’image. Ouvrez le bilan dans Chrome.');
    else toast('Le partage n’a pas pu s’ouvrir. Réessayez ou utilisez Chrome.');
   }).finally(()=>{btn.disabled=false;btn.textContent='↗ Partager · Teams ou e-mail'});
  }catch(e){
   btn.disabled=false;btn.textContent='↗ Partager · Teams ou e-mail';
-  showShareHelp();
+  toast('Le partage est indisponible ici. Essayez depuis Google Chrome.');
  }
 });
 // If the current browser cannot share files, warn before people enter a full shift report.
 if(typeof navigator.share!=='function'){
  const n=document.createElement('div');n.className='share-advice';
- n.innerHTML='📱 Pour afficher le menu de partage Android avec Teams et e-mail, <button type="button" id="openChromeHelp">ouvrir dans Chrome</button> avant de remplir le bilan.';
+ n.innerHTML='📱 Ce navigateur ne propose pas le partage d’image. Pour éviter de ressaisir les chiffres, <button type="button" id="openChromeHelp">ouvrez maintenant dans Chrome</button> avant de remplir le bilan. Le bouton Partager y affichera Teams et les e-mails disponibles.';
  const at=document.querySelector('.sub');at?.insertAdjacentElement('afterend',n);
- $('openChromeHelp')?.addEventListener('click',showShareHelp);
+ $('openChromeHelp')?.addEventListener('click',openChromeDirectly);
 }
 </script></body></html>
