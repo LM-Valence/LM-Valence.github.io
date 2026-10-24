@@ -10,8 +10,7 @@
 </defs>
 <g clip-path="url(#outer)">
   <rect x="8" y="8" width="496" height="496" rx="94" fill="url(#dark)"/>
-  <path d="M8 8h496v281H8z" fill="url(#top)"/>
-  <path d="M8 278c100-15 161 26 248 16 88-11 171-23 248-1V8H8z" fill="url(#top)"/>
+  <path d="M8 8h496v285H8z" fill="url(#top)"/>
   <g transform="translate(102 40) scale(1.76) translate(-6.504 -4.295)">
     <g>
 	<polygon fill="#7BB51C" points="24.689,109.878 163.222,109.878 94.323,40.98 	"/>
@@ -42,7 +41,7 @@
 		C133.666,49.706,135.708,51.242,133.228,53.573z"/>
 </g>
   </g>
-  <path d="M68 299H444" stroke="#78BE28" stroke-width="8" stroke-linecap="round"/>
+  <path d="M79 302H433" stroke="#80CB37" stroke-width="4" stroke-linecap="round"/>
   <text x="256" y="398" font-family="Arial,Helvetica,sans-serif" font-weight="800"
     text-anchor="middle" font-size="94" letter-spacing="3" fill="#FFFFFF">BILAN</text>
   <text x="256" y="458" font-family="Arial,Helvetica,sans-serif" font-weight="800"
