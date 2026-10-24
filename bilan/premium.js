@@ -148,10 +148,10 @@ renderCanvas = function renderPremiumBilan(){
   blockTitle(801,197,779,'PRÉPARATION  ·  RELIQUATS','box');
   shadowCard(20,251,374,356);shadowCard(406,251,379,356);
   shadowCard(801,251,380,356);shadowCard(1193,251,387,356);
-  unitTitle(26,257,362,'UA GAUCHE  ·  UAD',P.green);
-  unitTitle(412,257,367,'UA DROITE  ·  UAG',P.blue);
-  unitTitle(807,257,368,'UA GAUCHE  ·  UAD',P.green);
-  unitTitle(1199,257,375,'UA DROITE  ·  UAG',P.blue);
+  unitTitle(26,257,362,'UA GAUCHE  ·  UAG',P.green);
+  unitTitle(412,257,367,'UA DROITE  ·  UAD',P.blue);
+  unitTitle(807,257,368,'UA GAUCHE  ·  UAG',P.green);
+  unitTitle(1199,257,375,'UA DROITE  ·  UAD',P.blue);
 
   function reception(x,side,color,fill,totalW){
     txt('RÉCEPTION',x+12,321,18,P.ink,750);
@@ -257,9 +257,9 @@ renderCanvas = function renderPremiumBilan(){
     txt('L’historique se construit au fil des bilans.',1310,863,18,P.muted,500,'center');
   }else{
     rr(1373,801,10,10,2,P.green);
-    txt('UAD',1390,808,13,P.muted,700);
+    txt('UAG',1390,808,13,P.muted,700);
     rr(1455,801,10,10,2,P.blue);
-    txt('UAG',1472,808,13,P.muted,700);
+    txt('UAD',1472,808,13,P.muted,700);
     const left=1096,right=1553,top=831,base=918;
     const vals=hist.flatMap(([,r])=>[Number(r.l_picks)||0,Number(r.r_picks)||0]);
     const max=Math.max(1,...vals)*1.16;
