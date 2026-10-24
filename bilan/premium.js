@@ -280,7 +280,7 @@ renderCanvas = function renderPremiumBilan(){
   }
   line(20,969,1580,969,'#cfdde3');
   txt('ENTREPÔT VALENCE  •  Performance  ·  Sécurité  ·  Passation managers',26,984,15,P.muted,600);
-  line(1090,985,1580,985,'#80bb41',4);
+  line(965,985,1310,985,'#80bb41',4);
   txt('ENSEMBLE, PLUS LOIN !',1575,984,15,P.green,800,'right');
   return board;
 };
