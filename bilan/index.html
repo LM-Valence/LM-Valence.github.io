@@ -18,8 +18,8 @@
 <div class="single-row" style="padding-top:15px"><label for="globalEnd">Fin globale prévue demain</label><input id="globalEnd" type="time" aria-label="Fin globale"></div></div></section>
 <div class="summary"><div class="summary-title">SYNTHÈSE GLOBALE · CALCUL AUTOMATIQUE</div><div class="totals"><div class="total"><strong id="totalPicks">—</strong><small>prises restantes</small></div><div class="total"><strong id="totalHours">—</strong><small>heures restantes</small></div><div class="total"><strong id="globalView">—</strong><small>fin prévue demain</small></div></div></div>
 <section class="card"><div class="card-head">🛡️ &nbsp; Sécurité et consignes</div><div class="card-body"><div class="single-row"><label for="accidents">Accidents du jour</label><input type="number" min="0" inputmode="numeric" id="accidents" placeholder="—"></div><div class="single-row"><label for="alerts">Situations à signaler</label><input type="number" min="0" inputmode="numeric" id="alerts" placeholder="—"></div><div class="single-row"><label for="nearmiss">Presque-accidents</label><input type="number" min="0" inputmode="numeric" id="nearmiss" placeholder="—"></div><div class="group">Commentaires pour demain (facultatif)</div><textarea class="comment" id="comments" placeholder="Une consigne importante ? Sinon laissez vide."></textarea><p class="small">Les cases vides restent indiquées « — » : elles ne sont pas considérées comme zéro.</p></div></section>
-<div class="sub-actions"><span class="small">Brouillon mémorisé sur cet appareil.</span><button id="clear">Effacer ce jour</button></div>
-</div><div class="actions"><div class="actions-inner"><button class="share" id="share">↗ Partager · Teams ou mail</button><button class="download" id="download">↓ Image PNG</button></div></div><div id="toast" role="status"></div>
+<div class="sub-actions"><span class="small">Brouillon mémorisé ici. Après « Partager », choisissez Teams (tchat) ou votre messagerie.</span><button id="clear">Effacer ce jour</button></div>
+</div><div class="actions"><div class="actions-inner"><button class="share" id="share">↗ Partager · Teams ou e-mail</button><button class="download" id="download">↓ Image PNG</button></div></div><div id="toast" role="status"></div>
 <script>
 'use strict';const $=id=>document.getElementById(id);const fields=['l_br2','r_br2','l_cam','r_cam','l_cont','r_cont','l_ph','r_ph','l_rang','r_rang','l_picks','r_picks','l_hours','r_hours','l_end','r_end','globalEnd','accidents','alerts','nearmiss','comments'];
 const key='valence_mobile_bilan_2026_v2';function records(){try{return JSON.parse(localStorage.getItem(key)||'{}')||{}}catch{return {}}}function todayLocal(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
@@ -66,15 +66,15 @@ $('share').addEventListener('click',()=>{
  // Do not await anything before navigator.share; preserve the Android tap gesture.
  try{
   if(!(img.complete&&img.naturalWidth&&aerial.complete&&aerial.naturalWidth)){
-    toast('Les photos se chargent. Réessayez dans un instant.');return;
+    toast('Le visuel se prépare. Réessayez après son chargement.');return;
   }
   if(typeof navigator.share!=='function'){
-    toast('Pour partager directement, ouvrez ce lien dans Chrome sur Android. Le bouton Image PNG reste disponible.');return;
+    toast('Ouvrez cette page dans Chrome pour choisir Teams ou votre messagerie. Sinon, utilisez Image PNG.');return;
   }
   btn.disabled=true;btn.textContent='Ouverture du partage…';
   const file=pngFileForShare();
   if(navigator.canShare&&!navigator.canShare({files:[file]})){
-    toast('Ce navigateur ne prend pas en charge le partage des images. Essayez Chrome ou le bouton Image PNG.');btn.disabled=false;btn.textContent='↗ Partager · Teams ou mail';return;
+    toast('Votre navigateur ne peut pas partager l’image directement. Ouvrez le lien dans Chrome, ou utilisez Image PNG.');btn.disabled=false;btn.textContent='↗ Partager · Teams ou e-mail';return;
   }
   // Opens the phone's native list of targets: Teams chat, Outlook, Gmail, etc., if available.
   Promise.resolve(navigator.share({
@@ -82,11 +82,11 @@ $('share').addEventListener('click',()=>{
     text:'Bilan UAD / UAG du '+dt($('date').value)
   })).catch(e=>{
     if(e?.name!=='AbortError')toast('Partage impossible depuis ce navigateur. Ouvrez le lien dans Chrome, ou utilisez Image PNG.');
-  }).finally(()=>{btn.disabled=false;btn.textContent='↗ Partager · Teams ou mail'});
+  }).finally(()=>{btn.disabled=false;btn.textContent='↗ Partager · Teams ou e-mail'});
   return;
  }catch(e){
   toast('Le partage direct n’est pas disponible ici. Essayez dans Chrome, ou utilisez Image PNG.');
-  btn.disabled=false;btn.textContent='↗ Partager · Teams ou mail';
+  btn.disabled=false;btn.textContent='↗ Partager · Teams ou e-mail';
  }
 });
 </script></body></html>
