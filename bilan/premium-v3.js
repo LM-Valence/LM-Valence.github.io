@@ -241,7 +241,7 @@ renderCanvas = function renderPremiumBilan(){
   const parts=[
     [20,675,446,'SÉCURITÉ','shield'],
     [477,675,538,'COMMENTAIRES POUR DEMAIN','chat'],
-    [1026,675,554,'HISTORIQUE DES RELIQUATS','bars']
+    [1026,675,554,'ÉVOLUTION DES RELIQUATS (PRISES)','bars']
   ];
   for(const [x,y,w,title,icon] of parts){
     shadowCard(x,y,w,177,11);
@@ -276,33 +276,56 @@ renderCanvas = function renderPremiumBilan(){
     const v=i===4 && rows.length>5?rows[i].slice(0,38)+'…':rows[i];
     txt(v,505,748+i*20,17,P.ink,500);
   }
-  rr(1040,726,526,116,8,'#fafcfd');
-  const historyPoints=history();
+  rr(1040,726,526,116,8,'#f9fbfc');
+  // Quatre jours au maximum pour que dates et chiffres restent lisibles sur Teams.
+  // Les données sont issues exclusivement de l'historique local du manager.
+  const historyPoints=history().slice(-4);
   if(historyPoints.length===0){
-    txt('Historique disponible après les premiers bilans.',
-      1305,795,16,P.muted,500,'center');
+    txt('Pas encore de reliquats enregistrés.',1303,775,17,P.muted,600,'center');
+    txt('Le graphique se remplira au fil des bilans.',1303,801,13,P.muted,500,'center');
   }else{
-    rr(1386,727,10,10,2,P.green);
-    txt('UAG',1403,732,13,P.navy,700);
-    rr(1470,727,10,10,2,P.blue);
-    txt('UAD',1487,732,13,P.navy,700);
-    const left=1075,right=1548,base=824,top=753;
-    const all=historyPoints.flatMap(([,r])=>[+r.l_picks||0,+r.r_picks||0]);
-    const max=Math.max(1,...all)*1.14;
-    for(let i=0;i<4;i++){
-      const y=base-i*(base-top)/3;
-      line(left,y,right,y,'#dae6ec',1);
+    // Légende discrète en partie haute.
+    rr(1377,729,10,10,2,P.green);
+    txt('UAG',1394,735,13,P.navy,700);
+    rr(1459,729,10,10,2,P.blue);
+    txt('UAD',1476,735,13,P.navy,700);
+
+    const left=1072,right=1551,top=767,base=807;
+    const allValues=historyPoints.flatMap(([,r])=>[+r.l_picks||0,+r.r_picks||0]);
+    const max=Math.max(1,...allValues);
+    // Un graphique délibérément peu chargé, avec trois lignes de repère.
+    for(let i=0;i<=2;i++){
+      const y=base-i*((base-top)/2);
+      line(left,y,right,y,'#dce6eb',1);
     }
     const slot=(right-left)/historyPoints.length;
-    const bw=Math.min(22,Math.max(10,slot*.23));
+    const barWidth=Math.min(20,slot*.19);
+    const separation=Math.min(23,slot*.20);
     historyPoints.forEach(([day,r],i)=>{
-      const mid=left+(i+.5)*slot;
-      [[+r.l_picks||0,P.green,-bw-2],[+r.r_picks||0,P.blue,2]].forEach(([n,color,delta])=>{
-        const hh=(n/max)*(base-top);
-        if(hh>0.1)rr(mid+delta,base-hh,bw,hh,1.5,color);
-      });
-      txt(day.slice(8,10)+'/'+day.slice(5,7),mid,838,12,P.muted,550,'center');
+      const center=left+(i+.5)*slot;
+      const bars=[
+        {raw:Number(r.l_picks)||0,fill:P.green,x:center-separation},
+        {raw:Number(r.r_picks)||0,fill:P.blue,x:center+separation}
+      ];
+      for(const b of bars){
+        const barHeight=b.raw>0?Math.max(2,(b.raw/max)*(base-top)):0;
+        if(barHeight>0)rr(b.x-barWidth/2,base-barHeight,barWidth,barHeight,2,b.fill);
+        // Valeur au-dessus de chaque barre : 6 579, 8 252, etc.
+        const label=fnum(b.raw);
+        const fs=historyPoints.length>=4?11:12;
+        fit(label,b.x,Math.max(750,base-barHeight-10),
+          Math.max(38,slot*.40),fs,b.fill,800,'center',10);
+      }
+      txt(day.slice(8,10)+'/'+day.slice(5,7),center,821,13,P.navy,600,'center');
     });
+    // Ligne de synthèse destinée à une lecture rapide par la direction.
+    const [lastDate,last]=historyPoints[historyPoints.length-1];
+    const lastLeft=Number(last.l_picks)||0;
+    const lastRight=Number(last.r_picks)||0;
+    const summary='Dernier bilan '+lastDate.slice(8,10)+'/'+lastDate.slice(5,7)+
+      ' : UAG '+fnum(lastLeft)+'  ·  UAD '+fnum(lastRight)+
+      '  ·  Total '+fnum(lastLeft+lastRight);
+    fit(summary,1052,838,505,12,P.navy,700,'left',10);
   }
   line(20,870,1580,870,'#cfdde3');
   txt('ENTREPÔT VALENCE  |  Performance  ·  Sécurité  ·  Passation managers',
