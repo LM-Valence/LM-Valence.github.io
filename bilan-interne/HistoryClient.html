@@ -16,6 +16,7 @@
   panel.hidden=false;
   if(form) form.hidden=true;
   if(open) {open.hidden=false;open.textContent='Actualiser';}
+  window.BILAN_HISTORY_SYNCED=false;
   const state={
     ready:false,loading:false,requested:0,forDate:'',
     rows:{},saving:false,lastSaved:''
@@ -57,13 +58,13 @@
           l_picks:String(r.l_picks),r_picks:String(r.r_picks),
           revision:r.revision,updated_at:r.updated_at
         };
-      state.rows=next;state.forDate=key;state.ready=true;
+      state.rows=next;state.forDate=key;state.ready=true;window.BILAN_HISTORY_SYNCED=true;
       message('Historique commun à jour · '+Object.keys(next).length+' jour(s)','ok');
       if(importer) importer.hidden = !oldDaysToImport().length;
       return true;
     } catch(error) {
       if(seq!==state.requested)return false;
-      state.ready=false;
+      state.ready=false;window.BILAN_HISTORY_SYNCED=false;
       message('Historique commun indisponible · Le partage PNG reste possible','error');
       return false;
     } finally {
