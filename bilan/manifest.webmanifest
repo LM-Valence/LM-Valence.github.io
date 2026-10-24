@@ -1,0 +1,26 @@
+{
+  "id": "/bilan/",
+  "name": "Bilan Valence",
+  "short_name": "Bilan Valence",
+  "description": "Bilan de fin de journée – entrepôt Leroy Merlin Valence, équipes UAG et UAD",
+  "start_url": "/bilan/",
+  "scope": "/bilan/",
+  "display": "standalone",
+  "background_color": "#f4f7f7",
+  "theme_color": "#0B6145",
+  "icons": [
+    {
+      "src": "/bilan/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/bilan/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "fr"
+}
