@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bilan-valence-history",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "d1_databases": [{
+    "binding": "HISTORY_DB",
+    "database_name": "bilan-valence-history",
+    "database_id": "REMPLACER_PAR_ID_D1"
+  }]
+}
