@@ -277,30 +277,29 @@ renderCanvas = function renderPremiumBilan(){
     txt(v,505,748+i*20,17,P.ink,500);
   }
   rr(1040,726,526,116,8,'#f9fbfc');
-  // Quatre jours au maximum pour que dates et chiffres restent lisibles sur Teams.
-  // Les données sont issues exclusivement de l'historique local du manager.
-  const historyPoints=history().slice(-4);
+  // Six derniers jours effectivement renseignés, pour couvrir du lundi au samedi.
+  // Aucune donnée fictive, aucune synthèse redondante sous le graphique.
+  const historyPoints=history().slice(-6);
   if(historyPoints.length===0){
     txt('Pas encore de reliquats enregistrés.',1303,775,17,P.muted,600,'center');
     txt('Le graphique se remplira au fil des bilans.',1303,801,13,P.muted,500,'center');
   }else{
-    // Légende discrète en partie haute.
-    rr(1377,729,10,10,2,P.green);
-    txt('UAG',1394,735,13,P.navy,700);
-    rr(1459,729,10,10,2,P.blue);
-    txt('UAD',1476,735,13,P.navy,700);
+    rr(1377,730,10,10,2,P.green);
+    txt('UAG',1394,736,13,P.navy,700);
+    rr(1459,730,10,10,2,P.blue);
+    txt('UAD',1476,736,13,P.navy,700);
 
-    const left=1072,right=1551,top=767,base=807;
-    const allValues=historyPoints.flatMap(([,r])=>[+r.l_picks||0,+r.r_picks||0]);
+    // Le graphique utilise toute la hauteur disponible : 6 dates restent lisibles.
+    const left=1061,right=1553,top=765,base=819;
+    const allValues=historyPoints.flatMap(([,r])=>[Number(r.l_picks)||0,Number(r.r_picks)||0]);
     const max=Math.max(1,...allValues);
-    // Un graphique délibérément peu chargé, avec trois lignes de repère.
-    for(let i=0;i<=2;i++){
+    for(let i=0;i<3;i++){
       const y=base-i*((base-top)/2);
-      line(left,y,right,y,'#dce6eb',1);
+      line(left,y,right,y,'#e1e9ed',1);
     }
     const slot=(right-left)/historyPoints.length;
-    const barWidth=Math.min(20,slot*.19);
-    const separation=Math.min(23,slot*.20);
+    const barWidth=Math.min(18,slot*.17);
+    const separation=Math.min(21,slot*.23);
     historyPoints.forEach(([day,r],i)=>{
       const center=left+(i+.5)*slot;
       const bars=[
@@ -310,22 +309,13 @@ renderCanvas = function renderPremiumBilan(){
       for(const b of bars){
         const barHeight=b.raw>0?Math.max(2,(b.raw/max)*(base-top)):0;
         if(barHeight>0)rr(b.x-barWidth/2,base-barHeight,barWidth,barHeight,2,b.fill);
-        // Valeur au-dessus de chaque barre : 6 579, 8 252, etc.
-        const label=fnum(b.raw);
-        const fs=historyPoints.length>=4?14:15;
-        fit(label,b.x,Math.max(750,base-barHeight-10),
-          Math.max(38,slot*.40),fs,b.fill,800,'center',10);
+        // Chiffre de chaque UAG/UAD directement au-dessus de sa barre.
+        const fontSize=historyPoints.length>=5?11:historyPoints.length>=3?13:14;
+        const labelY=Math.max(750,base-barHeight-8);
+        fit(fnum(b.raw),b.x,labelY,Math.max(34,slot*.43),fontSize,b.fill,800,'center',10);
       }
-      txt(day.slice(8,10)+'/'+day.slice(5,7),center,821,13,P.navy,600,'center');
+      txt(day.slice(8,10)+'/'+day.slice(5,7),center,836,12,P.navy,700,'center');
     });
-    // Ligne de synthèse destinée à une lecture rapide par la direction.
-    const [lastDate,last]=historyPoints[historyPoints.length-1];
-    const lastLeft=Number(last.l_picks)||0;
-    const lastRight=Number(last.r_picks)||0;
-    const summary='Dernier bilan '+lastDate.slice(8,10)+'/'+lastDate.slice(5,7)+
-      ' : UAG '+fnum(lastLeft)+'  ·  UAD '+fnum(lastRight)+
-      '  ·  Total '+fnum(lastLeft+lastRight);
-    fit(summary,1052,838,505,14,P.navy,700,'left',11);
   }
   line(20,870,1580,870,'#cfdde3');
   txt('ENTREPÔT VALENCE  |  Performance  ·  Sécurité  ·  Passation managers',
