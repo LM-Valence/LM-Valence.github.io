@@ -328,8 +328,13 @@ renderCanvas = function renderPremiumBilan(){
   // Aucune donnée fictive, aucune synthèse redondante sous le graphique.
   const historyPoints=history().slice(-6);
   if(historyPoints.length===0){
-    txt('Pas encore de reliquats enregistrés.',1303,775,17,P.muted,600,'center');
-    txt('Le graphique se remplira au fil des bilans.',1303,801,13,P.muted,500,'center');
+    if(window.BILAN_HISTORY_SYNCED){
+      txt('Aucune journée encore enregistrée.',1303,775,17,P.muted,600,'center');
+      txt('Le graphique se remplira au fil des bilans.',1303,801,13,P.muted,500,'center');
+    }else{
+      txt('Historique commun non chargé.',1303,775,17,P.muted,600,'center');
+      txt('Connexion à vérifier avant le partage.',1303,801,13,P.muted,500,'center');
+    }
   }else{
     rr(1377,730,10,10,2,P.green);
     txt('UAG',1394,736,13,P.navy,700);
