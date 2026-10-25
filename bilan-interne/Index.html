@@ -115,7 +115,7 @@
 <div class="sub-actions"><span class="small">Brouillon mémorisé sur cet appareil. Choisissez votre application après « Partager ».</span><button id="clear">Effacer ce jour</button></div>
 </div><div class="actions"><div class="actions-inner"><button class="share" id="share">↗ Partager</button><button class="download" id="download" aria-label="Télécharger l’image PNG" title="Télécharger une image PNG">↓ PNG</button></div></div><div id="toast" role="status"></div><div class="share-help" id="shareHelp" hidden role="dialog" aria-modal="true" aria-labelledby="shareHelpTitle"><div class="share-help-card">
 <h2 id="shareHelpTitle">Partager le bilan en image</h2>
-<p>Ce navigateur ne permet pas d’ouvrir le menu Android pour partager une image. Ouvrez le bilan dans <strong>Google Chrome</strong>, puis appuyez sur <strong>Partager</strong> : vous pourrez choisir Teams, Gmail ou Outlook, selon les applications installées.</p>
+<p>Dans le navigateur interne Google, le partage direct peut être limité. Utilisez <strong>↓ PNG</strong> pour récupérer le bilan, puis joignez cette image dans Teams ou dans votre e-mail professionnel.</p>
 <div class="share-help-actions">
 <a class="primary" id="launchChrome" href="#">↓ Télécharger le PNG</a>
 <button class="secondary" id="copyShareLink" type="button">Copier le lien interne</button>
@@ -184,7 +184,7 @@ function pngFileForShare(){
  return new File([bytes], 'Bilan_Valence_'+$('date').value+'.png',{type:'image/png'});
 }
 function download(blob){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Bilan_Valence_'+$('date').value+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}
-$('download').addEventListener('click',async()=>{const btn=$('download');btn.disabled=true;try{download(await png());window.sharedHistoryPublish?.();toast('Image créée. Ouvrez Teams et joignez-la au message.')}catch(e){toast('Impossible de créer l’image sur ce navigateur.')}finally{btn.disabled=false}});
+$('download').addEventListener('click',async()=>{const btn=$('download');btn.disabled=true;try{download(await png());window.sharedHistoryPublish?.();toast('PNG prêt : joignez le bilan dans Teams ou votre e-mail.')}catch(e){toast('Impossible de créer l’image sur ce navigateur.')}finally{btn.disabled=false}});
 
 function showShareHelp(){$('shareHelp').hidden=false;}
 function hideShareHelp(){$('shareHelp').hidden=true;}
@@ -200,7 +200,7 @@ function openChromeDirectly(){
   // Dans le cadre sécurisé Google, Web Share peut être interdit par le navigateur.
   // En secours, on télécharge le PNG sans ouvrir le site GitHub public.
   $('download').click();
-  toast('Image PNG créée : joignez-la dans Teams ou par e-mail.');
+  toast('Création du PNG en cours…');
 }
 
 $('launchChrome').href='#';
@@ -221,7 +221,15 @@ $('share').addEventListener('click',()=>{
  const btn=$('share');
  if(btn.disabled)return;
  // A browser without Web Share cannot open Android's native photo-sharing chooser.
- if(typeof navigator.share!=='function'){openChromeDirectly();return;}
+ const policy=document.permissionsPolicy||document.featurePolicy;
+ let blockedByFrame=false;
+ try {
+   if(policy&&typeof policy.allowsFeature==='function')
+     blockedByFrame=policy.allowsFeature('web-share')===false;
+ }catch(e){}
+ if(typeof navigator.share!=='function'||blockedByFrame){
+   openChromeDirectly();return;
+ }
  try{
   if(!(img.complete&&img.naturalWidth&&aerial.complete&&aerial.naturalWidth&&officialLogo.complete&&officialLogo.naturalWidth)){
    toast('Le visuel se prépare. Réessayez dans un instant.');return;
@@ -237,7 +245,7 @@ $('share').addEventListener('click',()=>{
   Promise.resolve(sharing).catch(e=>{
    if(e?.name==='AbortError')return;
    if(e?.name==='NotAllowedError'||e?.name==='TypeError')toast('Le partage direct est bloqué ici. Utilisez ↓ PNG pour joindre l’image.');
-   else toast('Le partage n’a pas pu s’ouvrir. Réessayez ou utilisez Chrome.');
+   else toast('Le partage direct est indisponible : utilisez ↓ PNG.');
   }).finally(()=>{btn.disabled=false;btn.textContent='↗ Partager'});
  }catch(e){
   btn.disabled=false;btn.textContent='↗ Partager';
