@@ -1,6 +1,6 @@
 # BILAN VALENCE — version interne autonome (préparée, non déployée)
 
-**Objectif :** conserver le fonctionnement du bilan mobile, avec un historique commun des six dernières journées de prises UAG/UAD, accessible aux managers du domaine professionnel autorisé.
+**Objectif :** conserver le fonctionnement du bilan mobile, avec un historique commun des six dernières journées de prises UAG/UAD, accessible aux managers du domaine professionnel autorisé. Une fois leur session Google professionnelle ouverte, les managers ne doivent pas se reconnecter à chaque utilisation ; une reconnexion peut néanmoins être demandée à l’expiration de la session.
 
 Cette version ne dépend **d'aucun fichier, script ni classeur LM Pilot**. Elle a son propre projet Google Apps Script et crée son propre classeur Google Sheets privé.
 
@@ -16,16 +16,20 @@ Le dossier actuel est un **ensemble de sources**, pas une application déjà hé
 
 ## Installation par un responsable autorisé (UNE SEULE FOIS)
 
+**Le logiciel fonctionne-t-il ce soir ?** La version actuelle sur GitHub fonctionne déjà pour la saisie et le partage, mais la version privée ci-dessous n'est pas encore hébergée. Sans accès à Google Apps Script et sans autorisation d'utiliser le service professionnel, il est impossible d'activer un stockage confidentiel commun depuis GitHub Pages seul.
+
+**Ne pas créer de version anonyme ou héberger des chiffres de l'entrepôt sur un compte Google personnel.**
+
 1. Valider le choix Google Apps Script / Sheets avec le service informatique de Leroy Merlin et vérifier que les applications Web limitées au domaine sont permises.
 2. Dans un environnement Google Workspace **autorisé**, créer un **nouveau projet Apps Script autonome** nommé « Bilan Valence interne ». **Ne pas ouvrir, modifier ou importer le projet LM Pilot.**
 3. Copier Code.gs dans le nouveau projet. Ajouter trois fichiers HTML nommés **Index**, **Premium** et **HistoryClient**, puis y copier les contenus correspondants.
 4. Dans les paramètres du projet, activer l'affichage du manifeste et remplacer son contenu par appsscript.json.
-5. Sélectionner puis exécuter **initialiserBilanValence** depuis l'éditeur. Autoriser une seule fois les accès Google Sheets demandés au propriétaire. Un **nouveau classeur privé Bilan Valence** est créé ; conserver le lien retourné. Ne pas partager directement la feuille avec tous les managers.
-6. Option de protection supplémentaire pour les seuls managers : dans les **propriétés du script**, ajouter **BILAN_VALENCE_ALLOWED_EMAILS** avec les adresses professionnelles autorisées séparées par des virgules. Cette option **refuse l'accès** si la session Google ne fournit pas l'adresse de l'utilisateur. La tester avec une personne autorisée avant généralisation.
+5. Sélectionner puis exécuter **initialiserBilanValence_** depuis l'éditeur. Autoriser une seule fois les accès Google Sheets demandés au propriétaire. Un **nouveau classeur privé Bilan Valence** est créé ; conserver le lien retourné. Ne pas partager directement la feuille avec tous les managers.
+6. Le code vérifie systématiquement que la personne connectée possède une adresse du domaine **@leroymerlin.fr** et refuse les identités inconnues. Protection supplémentaire pour les seuls managers : dans les **propriétés du script**, ajouter **BILAN_VALENCE_ALLOWED_EMAILS** avec les adresses professionnelles autorisées séparées par des virgules. Cette option **refuse l'accès** si la session Google ne fournit pas l'adresse de l'utilisateur. Tester avec une personne autorisée avant généralisation.
 7. Aller dans **Déployer → Nouveau déploiement → Application Web**. Choisir :
    - **Exécuter en tant que : moi / propriétaire autorisé**.
    - **Qui a accès : uniquement les utilisateurs de mon domaine** (ou libellé équivalent).
-   - **Ne jamais choisir Tout le monde, Toute personne possédant le lien, ou Anonyme.**
+   - **Ne jamais choisir Tout le monde, Toute personne possédant le lien, ou Anonyme.** Le code vérifie aussi le domaine professionnel : un mauvais réglage seul ne doit pas donner accès aux données.
    - Si l'accès « domaine » n'est pas proposé, **arrêter le déploiement** et consulter l'IT ; ne pas créer une version ouverte.
 8. Copier le **nouveau lien Google Apps Script /exec** et le tester d'abord avec deux managers autorisés sur deux téléphones différents.
 9. Après test et validation, fournir **ce nouveau lien interne** aux managers. N'utilisez pas l'ancien lien GitHub pour les chiffres réels si les politiques de l'entreprise l'interdisent.
@@ -54,3 +58,15 @@ Le dossier actuel est un **ensemble de sources**, pas une application déjà hé
 **Préparé et testé par simulation** : création du classeur, lecture et écriture des journées, validation des chiffres, prévention des conflits, restrictions de domaine demandées, formulaire et rendu PNG.
 
 **À faire réellement** : déployer dans le domaine professionnel autorisé, valider la politique de sécurité avec l'IT, tester sur deux téléphones et confirmer le comportement du partage Android. Aucune session ni infrastructure Google d'entreprise n'a été modifiée lors de cette préparation.
+
+## Questions fréquentes
+
+**Connexion à chaque bilan ?** Non, si la session professionnelle Google reste valide. L'outil réutilise cette session ; il ne demande aucun nouveau mot de passe.
+
+**Peut-on utiliser exactement l'ancien lien public ?** Non pour restreindre l'accès. Il faut diffuser le **nouveau lien Apps Script interne** ; l'ancien lien GitHub reste public tant qu'il n'est pas désactivé.
+
+**LM Pilot est-il concerné ?** Non : dossier, Apps Script, Google Sheet et code totalement distincts. Rien n'est modifié dans LM Pilot.
+
+**Et si je n'ai pas le droit de créer une application Google ?** Alors conserver la démonstration locale avec des chiffres fictifs et faire approuver une solution d'hébergement interne. Ne pas contourner les règles de l'entreprise.
+
+**Protection contre les accès non autorisés ?** Le manifeste demande DOMAIN, le serveur vérifie l'adresse @leroymerlin.fr et une liste facultative peut limiter l'accès aux seuls managers. En cas d'identité non disponible, l'accès est refusé. Ces contrôles doivent être testés dans votre domaine avant utilisation réelle.
