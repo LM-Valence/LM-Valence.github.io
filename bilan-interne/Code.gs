@@ -7,9 +7,10 @@ const BV_ID_KEY='BILAN_VALENCE_PRIVATE_SPREADSHEET_ID';
 const BV_ALLOWED_KEY='BILAN_VALENCE_ALLOWED_EMAILS';
 const BV_TAB='Historique_reliquats';
 const BV_MAX=10000000;
+const BV_DOMAIN='leroymerlin.fr'; // L'application n'autorise que les comptes de ce domaine.
 
 /** Une seule fois, sous un compte professionnel autorisé. */
-function initialiserBilanValence() {
+function initialiserBilanValence_() {
   const props=PropertiesService.getScriptProperties();
   let id=props.getProperty(BV_ID_KEY);
   if (id) {
@@ -29,7 +30,7 @@ function initialiserBilanValence() {
 }
 
 /** Option de filtrage par manager, avec rejet si Google ne fournit pas l'identité. */
-function definirManagersAutorises(liste) {
+function definirManagersAutorises_(liste) {
   if (typeof liste!=='string') throw Error('Liste de courriels attendue');
   const users=liste.split(/[;,\n]+/).map(v=>v.trim().toLowerCase()).filter(Boolean);
   if (!users.length||users.some(v=> !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v))) {
@@ -39,14 +40,17 @@ function definirManagersAutorises(liste) {
   return {ok:true,utilisateurs:users.length};
 }
 function bvAutoriser_() {
-  // Le domaine doit être verrouillé au niveau du DÉPLOIEMENT Apps Script.
-  const allowed=PropertiesService.getScriptProperties().getProperty(BV_ALLOWED_KEY);
-  if (allowed) {
-    const email=String(Session.getActiveUser().getEmail()||'').toLowerCase();
-    if (!email||allowed.split(',').indexOf(email)<0) {
-      throw Error('Accès réservé aux managers autorisés');
-    }
+  // Double protection : contrôle du compte professionnel même si le déploiement
+  // Google était configuré trop largement par erreur.
+  const email = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+  if (!email || !email.endsWith('@'+BV_DOMAIN)) {
+    throw Error('Accès réservé aux comptes Leroy Merlin du domaine autorisé');
   }
+  const allowed=PropertiesService.getScriptProperties().getProperty(BV_ALLOWED_KEY);
+  if (allowed && allowed.split(',').indexOf(email)<0) {
+    throw Error('Accès réservé aux managers autorisés');
+  }
+  return true;
 }
 function bvOnglet_() {
   const id=PropertiesService.getScriptProperties().getProperty(BV_ID_KEY);
