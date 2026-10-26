@@ -197,10 +197,53 @@ const intentChrome=''; // Version interne : aucun renvoi vers le site public.
 // Tentative d'ouverture directe de Chrome, depuis le clic réel du manager.
 // Le navigateur Android peut choisir de bloquer les liens intent://.
 function openChromeDirectly(){
-  // Dans le cadre sécurisé Google, Web Share peut être interdit par le navigateur.
-  // En secours, on télécharge le PNG sans ouvrir le site GitHub public.
-  $('download').click();
-  toast('Création du PNG en cours…');
+  // Secours pour l'iframe Google : le partage natif reste dans Chrome,
+  // sur une page transitoire sans backend ni stockage des chiffres.
+  // Si le transfert est bloqué par Android, le bouton PNG reste disponible.
+  if(!(img.complete&&img.naturalWidth&&aerial.complete&&aerial.naturalWidth&&officialLogo.complete&&officialLogo.naturalWidth)){
+    toast('Le visuel se prépare. Réessayez dans un instant.');return;
+  }
+  let file;
+  try {file=pngFileForShare();}
+  catch(e){toast('Impossible de préparer le PNG. Essayez ↓ PNG.');return;}
+  const shareOrigin='https://lm-valence.github.io';
+  const token=Array.from(crypto.getRandomValues(new Uint8Array(16)),
+    b=>b.toString(16).padStart(2,'0')).join('');
+  let receiver=null,bytes=null,ready=false,sent=false,timer=0;
+  const cleanup=()=>{window.removeEventListener('message',onReady);clearTimeout(timer);};
+  const transmit=()=>{
+    if(!receiver||!bytes||!ready||sent)return;
+    sent=true;
+    try{
+      receiver.postMessage({
+        type:'BV_SHARE_IMAGE',token,
+        date:$('date').value,bytes
+      },shareOrigin,[bytes]);
+      cleanup();
+    }catch(e){
+      cleanup();toast('Transfert bloqué. Utilisez ↓ PNG.');
+    }
+  };
+  const onReady=event=>{
+    if(event.origin!==shareOrigin||event.source!==receiver||
+      event.data?.type!=='BV_SHARE_READY'||event.data?.token!==token)return;
+    ready=true;transmit();
+  };
+  window.addEventListener('message',onReady);
+  receiver=window.open(shareOrigin+'/bilan-valence/partager.html#'+token,'_blank');
+  if(!receiver){
+    cleanup();$('download').click();
+    toast('Le partage externe est bloqué : PNG téléchargé.');return;
+  }
+  timer=setTimeout(()=>{
+    if(!sent){
+      cleanup();toast('Le partage n’a pas pu s’ouvrir. Utilisez ↓ PNG.');
+    }
+  },15000);
+  file.arrayBuffer().then(buffer=>{bytes=buffer;transmit();})
+    .catch(()=>{cleanup();toast('Impossible de transférer le PNG. Utilisez ↓ PNG.');});
+  // Comme lors du téléchargement, déclencher la mise à jour de l'historique.
+  window.sharedHistoryPublish?.();
 }
 
 $('launchChrome').href='#';
