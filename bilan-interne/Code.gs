@@ -138,6 +138,8 @@ function enregistrerReliquatsBilan(d) {
  * Rendu direct, sans évaluation de modèle Apps Script.
  * Le grand HTML (photos intégrées + JS) peut provoquer une erreur au niveau
  * des scriptlets de HtmlService.createTemplateFromFile(...).evaluate().
+ * Les fichiers Javascript Premium et HistoryClient sont lus comme du texte brut,
+ * sans tenter de les interpréter comme des pages HTML.
  * Le fichier est lu comme du texte statique et les trois insertions maîtrisées
  * sont faites directement, avant de servir la page.
  */
@@ -145,8 +147,8 @@ function bvPreparerPage_() {
   let html = HtmlService.createTemplateFromFile('Index').getRawContent();
 
   const inserts = [
-    ['<?!= include("Premium") ?>', HtmlService.createHtmlOutputFromFile('Premium').getContent()],
-    ['<?!= include("HistoryClient") ?>', HtmlService.createHtmlOutputFromFile('HistoryClient').getContent()]
+    ['<?!= include("Premium") ?>', HtmlService.createTemplateFromFile('Premium').getRawContent()],
+    ['<?!= include("HistoryClient") ?>', HtmlService.createTemplateFromFile('HistoryClient').getRawContent()]
   ];
 
   let url = '';
@@ -179,7 +181,7 @@ function doGet() {
       : reason.includes('BV_MODELE_INCOMPLET')
       ? 'BV-FICHIER'
       : 'BV-AFFICHAGE';
-    console.error('Bilan Valence : '+code+' - '+reason);
+    console.error('Bilan Valence : '+code+' - '+reason.slice(0,450));
     const message=code==='BV-IDENTITE'
       ? 'Google ne transmet pas votre identité au script avec ce mode de déploiement.'
       : code==='BV-DOMAINE' || code==='BV-AUTORISATION'
@@ -197,5 +199,5 @@ function doGet() {
 }
 function include(nom) {
   if(['Premium','HistoryClient'].indexOf(nom)<0)throw Error('Fichier non autorisé');
-  return HtmlService.createHtmlOutputFromFile(nom).getContent();
+  return HtmlService.createTemplateFromFile(nom).getRawContent();
 }
