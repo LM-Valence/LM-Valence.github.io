@@ -9,6 +9,20 @@ const BV_TAB='Historique_reliquats';
 const BV_MAX=10000000;
 const BV_DOMAIN='leroymerlin.fr'; // L'application n'autorise que les comptes de ce domaine.
 
+/**
+ * Bouton d'installation visible dans l'éditeur Apps Script.
+ * Interdit aux collaborateurs autres que le propriétaire du déploiement.
+ * La procédure elle-même est privée (suffixe _).
+ */
+function installerBilanValence() {
+  const active = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+  const effective = String(Session.getEffectiveUser().getEmail() || '').trim().toLowerCase();
+  if (!active || !effective || active !== effective || !active.endsWith('@'+BV_DOMAIN)) {
+    throw Error('Installation réservée au propriétaire professionnel du projet');
+  }
+  return initialiserBilanValence_();
+}
+
 /** Une seule fois, sous un compte professionnel autorisé. */
 function initialiserBilanValence_() {
   const props=PropertiesService.getScriptProperties();
