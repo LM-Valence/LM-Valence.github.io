@@ -138,17 +138,17 @@ function enregistrerReliquatsBilan(d) {
  * Rendu direct, sans évaluation de modèle Apps Script.
  * Le grand HTML (photos intégrées + JS) peut provoquer une erreur au niveau
  * des scriptlets de HtmlService.createTemplateFromFile(...).evaluate().
- * Les fichiers Javascript Premium et HistoryClient sont lus comme du texte brut,
- * sans tenter de les interpréter comme des pages HTML.
- * Le fichier est lu comme du texte statique et les trois insertions maîtrisées
- * sont faites directement, avant de servir la page.
+ * Premium et HistoryClient contiennent chacun une balise <script> complète,
+ * afin d'être des fragments HTML valides pour HtmlService.
+ * Les balises <script> des deux marqueurs sont remplacées en bloc (pas de
+ * double imbrication). Les trois insertions sont faites avant de servir la page.
  */
 function bvPreparerPage_() {
   let html = HtmlService.createTemplateFromFile('Index').getRawContent();
 
   const inserts = [
-    ['<?!= include("Premium") ?>', HtmlService.createTemplateFromFile('Premium').getRawContent()],
-    ['<?!= include("HistoryClient") ?>', HtmlService.createTemplateFromFile('HistoryClient').getRawContent()]
+    ['<script><?!= include("Premium") ?></script>', HtmlService.createTemplateFromFile('Premium').getRawContent()],
+    ['<script><?!= include("HistoryClient") ?></script>', HtmlService.createTemplateFromFile('HistoryClient').getRawContent()]
   ];
 
   let url = '';
