@@ -134,21 +134,40 @@ function enregistrerReliquatsBilan(d) {
       r_picks:d.r_picks,revision:1,updated_at:stamp}};
   } finally {if(lock.hasLock())lock.releaseLock();}
 }
+/**
+ * Rendu direct, sans évaluation de modèle Apps Script.
+ * Le grand HTML (photos intégrées + JS) peut provoquer une erreur au niveau
+ * des scriptlets de HtmlService.createTemplateFromFile(...).evaluate().
+ * Le fichier est lu comme du texte statique et les trois insertions maîtrisées
+ * sont faites directement, avant de servir la page.
+ */
+function bvPreparerPage_() {
+  let html = HtmlService.createTemplateFromFile('Index').getRawContent();
+
+  const inserts = [
+    ['<?!= include("Premium") ?>', HtmlService.createHtmlOutputFromFile('Premium').getContent()],
+    ['<?!= include("HistoryClient") ?>', HtmlService.createHtmlOutputFromFile('HistoryClient').getContent()]
+  ];
+
+  let url = '';
+  try { url=ScriptApp.getService().getUrl()||''; }
+  catch(e) { console.warn('BV_LIEN_INTERNE_OPTIONNEL'); }
+  inserts.push(['<?!= JSON.stringify(internalLink) ?>',JSON.stringify(url)]);
+
+  for (const [mark,content] of inserts) {
+    if (html.indexOf(mark)<0) throw Error('BV_MODELE_INCOMPLET');
+    html=html.split(mark).join(content);
+  }
+  return HtmlService.createHtmlOutput(html)
+    .setTitle('Bilan Valence · Entrepôt')
+    .addMetaTag('viewport','width=device-width, initial-scale=1, viewport-fit=cover');
+}
+
 function doGet() {
   try {
-    // Le domaine ADEO est contrôlé au niveau du déploiement Apps Script.
-    // L'adresse @leroymerlin.fr est vérifiée séparément ici.
+    // Conserver la protection du domaine ET l'identification professionnelle.
     bvAutoriser_();
-    const t=HtmlService.createTemplateFromFile('Index');
-
-    // Récupérer l'URL est une commodité pour le bouton "Copier le lien",
-    // pas une condition nécessaire pour ouvrir l'application.
-    t.internalLink='';
-    try { t.internalLink=ScriptApp.getService().getUrl()||''; }
-    catch(linkError) { console.warn('BV_LIEN_NON_DISPONIBLE'); }
-
-    return t.evaluate().setTitle('Bilan Valence · Entrepôt')
-      .addMetaTag('viewport','width=device-width, initial-scale=1, viewport-fit=cover');
+    return bvPreparerPage_();
   } catch(e) {
     const reason=String(e && e.message || e || '');
     const code=reason.includes('BV_IDENTITE_INDISPONIBLE')
@@ -157,9 +176,9 @@ function doGet() {
       ? 'BV-DOMAINE'
       : reason.includes('BV_COMPTE_NON_AUTORISE')
       ? 'BV-AUTORISATION'
+      : reason.includes('BV_MODELE_INCOMPLET')
+      ? 'BV-FICHIER'
       : 'BV-AFFICHAGE';
-    // Le journal reste accessible dans le projet Apps Script,
-    // sans communiquer de données opérationnelles à un visiteur.
     console.error('Bilan Valence : '+code+' - '+reason);
     const message=code==='BV-IDENTITE'
       ? 'Google ne transmet pas votre identité au script avec ce mode de déploiement.'
