@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b6145">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Partager le bilan · Entrepôt Valence</title>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;background:#f3f7f6;color:#18384f;margin:0;
+      min-height:100vh;padding:24px 14px;display:grid;place-items:center}
+    main{background:white;border:1px solid #d7e6df;border-radius:18px;max-width:460px;width:100%;
+      padding:25px 19px;box-shadow:0 9px 24px rgba(24,56,79,.08)}
+    .eyebrow{font-size:12px;letter-spacing:.08em;font-weight:800;color:#187946}
+    h1{font-size:24px;margin:10px 0 12px}
+    p{line-height:1.5;color:#526f7b;margin:10px 0;font-size:15px}
+    button,.fallback{display:block;width:100%;margin:18px 0 10px;text-align:center;border:0;
+      border-radius:11px;background:#137b47;color:#fff;padding:15px 10px;font-size:17px;
+      text-decoration:none;font-weight:800;cursor:pointer}
+    button:disabled{background:#b3c9bf;cursor:not-allowed}
+    .fallback{font-size:14px;background:#edf3f4;color:#1b4a60;margin-top:10px}
+    .note{font-size:12px;color:#678087;line-height:1.4;border-top:1px solid #e2ecea;padding-top:14px}
+    [hidden]{display:none!important}
+  </style>
+  <script src="./partager.js" defer></script>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">ENTREPÔT VALENCE</div>
+    <h1>Partager le bilan</h1>
+    <p id="status" role="status">Préparation de votre image PNG…</p>
+    <button type="button" id="share" disabled>↗ Partager le PNG</button>
+    <a class="fallback" id="download" href="#" download="Bilan_Valence.png" hidden>↓ Télécharger le PNG</a>
+    <p class="note">La page reçoit uniquement l'image créée sur votre appareil. Aucune donnée du bilan n'est envoyée ni enregistrée sur GitHub. La transmission au destinataire n'a lieu qu'après votre choix dans Android.</p>
+  </main>
+</body>
+</html>
