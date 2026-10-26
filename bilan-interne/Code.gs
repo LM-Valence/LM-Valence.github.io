@@ -57,12 +57,15 @@ function bvAutoriser_() {
   // Double protection : contrôle du compte professionnel même si le déploiement
   // Google était configuré trop largement par erreur.
   const email = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
-  if (!email || !email.endsWith('@'+BV_DOMAIN)) {
-    throw Error('Accès réservé aux comptes Leroy Merlin du domaine autorisé');
+  if (!email) {
+    throw Error('BV_IDENTITE_INDISPONIBLE');
+  }
+  if (!email.endsWith('@'+BV_DOMAIN)) {
+    throw Error('BV_DOMAINE_NON_AUTORISE');
   }
   const allowed=PropertiesService.getScriptProperties().getProperty(BV_ALLOWED_KEY);
   if (allowed && allowed.split(',').indexOf(email)<0) {
-    throw Error('Accès réservé aux managers autorisés');
+    throw Error('BV_COMPTE_NON_AUTORISE');
   }
   return true;
 }
@@ -133,17 +136,44 @@ function enregistrerReliquatsBilan(d) {
 }
 function doGet() {
   try {
+    // Le domaine ADEO est contrôlé au niveau du déploiement Apps Script.
+    // L'adresse @leroymerlin.fr est vérifiée séparément ici.
     bvAutoriser_();
     const t=HtmlService.createTemplateFromFile('Index');
-    t.internalLink=ScriptApp.getService().getUrl()||'';
+
+    // Récupérer l'URL est une commodité pour le bouton "Copier le lien",
+    // pas une condition nécessaire pour ouvrir l'application.
+    t.internalLink='';
+    try { t.internalLink=ScriptApp.getService().getUrl()||''; }
+    catch(linkError) { console.warn('BV_LIEN_NON_DISPONIBLE'); }
+
     return t.evaluate().setTitle('Bilan Valence · Entrepôt')
       .addMetaTag('viewport','width=device-width, initial-scale=1, viewport-fit=cover');
   } catch(e) {
+    const reason=String(e && e.message || e || '');
+    const code=reason.includes('BV_IDENTITE_INDISPONIBLE')
+      ? 'BV-IDENTITE'
+      : reason.includes('BV_DOMAINE_NON_AUTORISE')
+      ? 'BV-DOMAINE'
+      : reason.includes('BV_COMPTE_NON_AUTORISE')
+      ? 'BV-AUTORISATION'
+      : 'BV-AFFICHAGE';
+    // Le journal reste accessible dans le projet Apps Script,
+    // sans communiquer de données opérationnelles à un visiteur.
+    console.error('Bilan Valence : '+code+' - '+reason);
+    const message=code==='BV-IDENTITE'
+      ? 'Google ne transmet pas votre identité au script avec ce mode de déploiement.'
+      : code==='BV-DOMAINE' || code==='BV-AUTORISATION'
+      ? 'Ce compte professionnel ne dispose pas de l’accès requis.'
+      : 'Un problème empêche le chargement du formulaire.';
     return HtmlService.createHtmlOutput(
       '<!doctype html><html lang="fr"><meta charset="utf-8">'+
-      '<title>Accès réservé · Bilan Valence</title>'+
+      '<title>Bilan Valence · Vérification</title>'+
       '<body style="font-family:Arial;padding:35px;color:#18384f">'+
-      '<h2>Accès indisponible</h2><p>Veuillez contacter le responsable de Bilan Valence.</p></body></html>');
+      '<h2>Vérification de l’accès</h2>'+
+      '<p>'+message+'</p><p>Code de diagnostic : <strong>'+code+'</strong></p>'+
+      '<p>Le stockage de Bilan Valence n’a pas été effacé.</p></body></html>'
+    ).setTitle('Bilan Valence · Vérification');
   }
 }
 function include(nom) {
