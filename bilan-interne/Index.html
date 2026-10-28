@@ -261,49 +261,9 @@ $('copyShareLink').addEventListener('click',async()=>{
  }
 });
 $('share').addEventListener('click',()=>{
- const btn=$('share');
- if(btn.disabled)return;
- // A browser without Web Share cannot open Android's native photo-sharing chooser.
- const policy=document.permissionsPolicy||document.featurePolicy;
- let blockedByFrame=false;
- try {
-   if(policy&&typeof policy.allowsFeature==='function')
-     blockedByFrame=policy.allowsFeature('web-share')===false;
- }catch(e){}
- // Sur ordinateur, proposer directement Gmail, Chat, Teams et e-mail :
- // le menu de partage Windows ne permet pas d'y ajouter nos propres choix.
- // Sur Android et iPhone, conserver le partage natif quand il fonctionne.
- if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-    typeof navigator.share!=='function'||blockedByFrame){
-   openChromeDirectly();return;
- }
- try{
-  if(!(img.complete&&img.naturalWidth&&aerial.complete&&aerial.naturalWidth&&officialLogo.complete&&officialLogo.naturalWidth)){
-   toast('Le visuel se prépare. Réessayez dans un instant.');return;
-  }
-  btn.disabled=true;btn.textContent='Ouverture du partage…';
-  // Encode synchronously so that navigator.share keeps the Android tap activation.
-  const file=pngFileForShare();
-  if(navigator.canShare&&!navigator.canShare({files:[file]})){
-    btn.disabled=false;btn.textContent='↗ Partager';openChromeDirectly();return;
-  }
-  const sharing=navigator.share({files:[file],title:'Bilan de fin de journée · Entrepôt Valence',text:'Bilan UAD / UAG du '+dt($('date').value)});
-  window.sharedHistoryPublish?.(); // Démarré avant le passage de l'application en arrière-plan.
-  Promise.resolve(sharing).catch(e=>{
-   if(e?.name==='AbortError')return;
-   if(e?.name==='NotAllowedError'||e?.name==='TypeError')toast('Le partage direct est bloqué ici. Utilisez ↓ PNG pour joindre l’image.');
-   else toast('Le partage direct est indisponible : utilisez ↓ PNG.');
-  }).finally(()=>{btn.disabled=false;btn.textContent='↗ Partager'});
- }catch(e){
-  btn.disabled=false;btn.textContent='↗ Partager';
-  toast('Le partage direct est indisponible : utilisez ↓ PNG.');
- }
+  // Une seule entrée sur ordinateur et téléphone : choisir Gmail ou Google Chat.
+  // Les liens web ne peuvent pas joindre automatiquement le PNG dans ces services.
+  if($('share').disabled)return;
+  openChromeDirectly();
 });
-// If the current browser cannot share files, warn before people enter a full shift report.
-if(typeof navigator.share!=='function'){
- const n=document.createElement('div');n.className='share-advice';
- n.innerHTML='Si le partage direct est indisponible, utilisez <button type="button" id="openChromeHelp">↓ PNG</button> puis joignez l’image dans Teams ou par e-mail.';
- const at=document.querySelector('.sub');at?.insertAdjacentElement('afterend',n);
- $('openChromeHelp')?.addEventListener('click',openChromeDirectly);
-}
 </script><script><?!= include("Premium") ?></script><script><?!= include("HistoryClient") ?></script></body></html>
