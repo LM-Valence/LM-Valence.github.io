@@ -1,11 +1,14 @@
-/* Bilan Valence — partage Android côté navigateur uniquement.
-   L'image est transmise de l'application Google interne par postMessage
-   avec vérification de l'origine, et n'est envoyée à aucun serveur. */
+/* Bilan Valence : partage temporaire depuis l'application Google interne.
+ * Le PNG reste en mémoire du navigateur ; pas de stockage ni d'envoi à un backend.
+ * Les applis Teams et e-mail ne reçoivent l'image qu'au collage volontaire. */
 (() => {
   'use strict';
   const status = document.getElementById('status');
-  const share = document.getElementById('share');
-  const download = document.getElementById('download');
+  const copyButton = document.getElementById('copy');
+  const shareButton = document.getElementById('share');
+  const downloadLink = document.getElementById('download');
+  const teamsLink = document.getElementById('teams');
+  const emailLink = document.getElementById('email');
   const token = decodeURIComponent(location.hash.slice(1));
   const originOK = origin => origin === 'https://script.google.com' ||
     origin === 'https://script.googleusercontent.com' ||
@@ -14,7 +17,8 @@
   let file = null;
   let objectUrl = '';
   const message = text => { status.textContent = text; };
-  const listener = event => {
+  let poll;
+  const receive = event => {
     if (ready || !window.opener || event.source !== window.opener ||
         !originOK(event.origin)) return;
     const d = event.data;
@@ -25,63 +29,80 @@
     ready = true;
     clearInterval(poll);
     const arr = new Uint8Array(d.bytes);
-    // Signature PNG, évite de partager accidentellement un contenu inattendu.
     const signature = [137, 80, 78, 71, 13, 10, 26, 10];
     if (!signature.every((n,i) => arr[i] === n)) {
-      message('Image non valide. Revenez au formulaire et utilisez PNG.');
+      message('Image invalide. Revenez au formulaire et utilisez PNG.');
       return;
     }
-    file = new File([arr], 'Bilan_Valence_' + d.date + '.png',
-      {type:'image/png'});
+    file = new File([arr], 'Bilan_Valence_' + d.date + '.png', {type:'image/png'});
     objectUrl = URL.createObjectURL(file);
-    download.href = objectUrl;
-    download.download = file.name;
-    download.hidden = false;
-    share.disabled = false;
-    message('Votre image est prête. Appuyez sur « Partager le PNG » pour choisir Teams, Outlook ou une autre application.');
+    downloadLink.href = objectUrl;
+    downloadLink.download = file.name;
+    downloadLink.hidden = false;
+    shareButton.disabled = false;
+    copyButton.disabled = false;
+    teamsLink.hidden = false;
+    emailLink.hidden = false;
+    emailLink.href = 'mailto:?subject=' +
+      encodeURIComponent('Bilan de fin de journée - Entrepôt Valence - ' +
+        d.date.split('-').reverse().join('/'));
+    message('Image prête. Copiez-la pour la coller dans Teams ou dans votre e-mail.');
     history.replaceState(null, '', location.pathname);
   };
-  window.addEventListener('message', listener);
-  const sendReady = () => {
-    try {
-      window.opener?.postMessage({type:'BV_SHARE_READY',token}, '*');
-    } catch (_) {}
+  window.addEventListener('message', receive);
+  const requestImage = () => {
+    try { window.opener?.postMessage({type:'BV_SHARE_READY', token}, '*'); }
+    catch (_) {}
   };
-  const poll = setInterval(() => { if (!ready) sendReady(); }, 500);
   if (!window.opener || !token || token.length > 120) {
-    clearInterval(poll);
-    message('Ouvrez le bilan interne et utilisez son bouton « Partager ».');
+    message('Ouvrez le bilan interne et cliquez sur « Partager ».');
   } else {
-    sendReady();
+    poll = setInterval(() => { if (!ready) requestImage(); }, 500);
+    requestImage();
     setTimeout(() => {
       if (!ready) {
         clearInterval(poll);
-        message('L’image n’a pas pu être récupérée. Revenez au bilan et utilisez « PNG ».');
+        message('Image non reçue. Revenez au bilan, puis utilisez le bouton PNG.');
       }
     }, 12000);
   }
-  share.addEventListener('click', () => {
+  copyButton.addEventListener('click', async () => {
+    if (!file) return;
+    if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
+      message('Copie non disponible sur ce poste. Téléchargez le PNG puis joignez-le au message.');
+      return;
+    }
+    copyButton.disabled = true;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({'image/png':file})]);
+      message('Image copiée ! Ouvrez Teams ou votre e-mail, puis faites Ctrl + V dans le message.');
+      copyButton.textContent = '✓ Image copiée — recoller si besoin';
+    } catch (_) {
+      message('La copie est bloquée par le navigateur ou les règles du PC. Utilisez « Télécharger le PNG » puis joignez le fichier.');
+    } finally {
+      copyButton.disabled = false;
+    }
+  });
+  shareButton.addEventListener('click', () => {
     if (!file) return;
     if (typeof navigator.share !== 'function' ||
         (navigator.canShare && !navigator.canShare({files:[file]}))) {
-      message('Votre navigateur ne permet pas de partager cette image directement. Utilisez « Télécharger le PNG ».');
+      message('Le menu de partage n’est pas disponible ici. Utilisez « Copier l’image » ou « Télécharger le PNG ».');
       return;
     }
     try {
-      const sending = navigator.share({
+      Promise.resolve(navigator.share({
         files:[file], title:'Bilan de fin de journée · Entrepôt Valence',
         text:'Bilan UAG / UAD du ' + file.name.slice(14,24).split('-').reverse().join('/')
+      })).then(() => {
+        message('Menu de partage ouvert. Sélectionnez votre application et confirmez l’envoi.');
+      }).catch(e => {
+        message(e?.name==='AbortError'
+          ? 'Partage annulé. Vous pouvez copier l’image pour Teams ou un e-mail.'
+          : 'Partage non disponible. Utilisez « Copier l’image » ou « Télécharger le PNG ».');
       });
-      Promise.resolve(sending).then(() => message('Image transmise à l’application sélectionnée.'))
-        .catch(e => {
-          if (e?.name === 'AbortError') {
-            message('Partage annulé. Vous pouvez réessayer.');
-          } else {
-            message('Partage indisponible. Utilisez « Télécharger le PNG » si nécessaire.');
-          }
-        });
     } catch (_) {
-      message('Partage indisponible. Utilisez « Télécharger le PNG » si nécessaire.');
+      message('Partage bloqué. Utilisez « Copier l’image » ou « Télécharger le PNG ».');
     }
   });
   window.addEventListener('pagehide', () => {
