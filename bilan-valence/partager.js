@@ -7,6 +7,8 @@
   const copyButton = document.getElementById('copy');
   const shareButton = document.getElementById('share');
   const downloadLink = document.getElementById('download');
+  const gmailLink = document.getElementById('gmail');
+  const chatLink = document.getElementById('chat');
   const teamsLink = document.getElementById('teams');
   const emailLink = document.getElementById('email');
   const token = decodeURIComponent(location.hash.slice(1));
@@ -41,12 +43,14 @@
     downloadLink.hidden = false;
     shareButton.disabled = false;
     copyButton.disabled = false;
+    gmailLink.hidden = false;
+    chatLink.hidden = false;
     teamsLink.hidden = false;
     emailLink.hidden = false;
     emailLink.href = 'mailto:?subject=' +
       encodeURIComponent('Bilan de fin de journée - Entrepôt Valence - ' +
         d.date.split('-').reverse().join('/'));
-    message('Image prête. Copiez-la pour la coller dans Teams ou dans votre e-mail.');
+    message('Image prête. Copiez-la, puis choisissez Gmail, Chat, Teams ou e-mail.');
     history.replaceState(null, '', location.pathname);
   };
   window.addEventListener('message', receive);
@@ -75,7 +79,7 @@
     copyButton.disabled = true;
     try {
       await navigator.clipboard.write([new ClipboardItem({'image/png':file})]);
-      message('Image copiée ! Ouvrez Teams ou votre e-mail, puis faites Ctrl + V dans le message.');
+      message('Image copiée ! Choisissez Gmail, Google Chat, Teams ou e-mail, puis faites Ctrl + V dans le message.');
       copyButton.textContent = '✓ Image copiée — recoller si besoin';
     } catch (_) {
       message('La copie est bloquée par le navigateur ou les règles du PC. Utilisez « Télécharger le PNG » puis joignez le fichier.');
