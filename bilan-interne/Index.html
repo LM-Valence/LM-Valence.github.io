@@ -246,6 +246,46 @@ function openChromeDirectly(){
   window.sharedHistoryPublish?.();
 }
 
+
+function openMobileShareFallback(){
+  // Secours pour l'iframe Google : une page HTTPS demande le partage Android
+  // lors d'un second appui, sans transmettre l'image à un serveur.
+  if(!(img.complete&&img.naturalWidth&&aerial.complete&&aerial.naturalWidth&&officialLogo.complete&&officialLogo.naturalWidth)){
+    toast('Le visuel se prépare. Réessayez dans un instant.');return;
+  }
+  const shareOrigin='https://lm-valence.github.io';
+  const token=Array.from(crypto.getRandomValues(new Uint8Array(16)),
+    n=>n.toString(16).padStart(2,'0')).join('');
+  // Ouvrir pendant le clic, avant le rendu du PNG, pour limiter les pop-ups bloquées.
+  const receiver=window.open(shareOrigin+'/bilan-valence/partager-mobile.html#'+token,'_blank');
+  if(!receiver){toast('Nouvelle page bloquée. Utilisez ↓ PNG.');return;}
+  let ready=false,bytes=null,sent=false;
+  const cleanup=()=>{window.removeEventListener('message',onReady);clearTimeout(timer);};
+  const transmit=()=>{
+    if(!ready||!bytes||sent)return;
+    try{
+      sent=true;
+      receiver.postMessage({type:'BV_SHARE_IMAGE',token,date:$('date').value,bytes},shareOrigin,[bytes]);
+      cleanup();
+    }catch(e){cleanup();toast('Transfert bloqué. Utilisez ↓ PNG.');}
+  };
+  const onReady=event=>{
+    if(event.origin!==shareOrigin||event.source!==receiver||
+      event.data?.type!=='BV_SHARE_READY'||event.data?.token!==token)return;
+    ready=true;transmit();
+  };
+  window.addEventListener('message',onReady);
+  const timer=setTimeout(()=>{
+    if(!sent){cleanup();toast('Le partage ne répond pas. Utilisez ↓ PNG.');}
+  },15000);
+  try{
+    const file=pngFileForShare();
+    file.arrayBuffer().then(buffer=>{bytes=buffer;transmit();})
+      .catch(()=>{cleanup();toast('Transfert du PNG impossible. Utilisez ↓ PNG.');});
+    window.sharedHistoryPublish?.();
+  }catch(e){cleanup();toast('Image impossible. Utilisez ↓ PNG.');}
+}
+
 $('launchChrome').href='#';
 $('launchChrome').addEventListener('click',e=>{
   e.preventDefault();hideShareHelp();$('download').click();
@@ -263,44 +303,45 @@ $('copyShareLink').addEventListener('click',async()=>{
 $('share').addEventListener('click',()=>{
   const btn=$('share');
   if(btn.disabled)return;
-  // Ordinateur : conserver exactement le parcours Gmail / Google Chat validé.
+  // Ordinateur : conserver le partage Gmail / Chat fonctionnel.
   if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
     openChromeDirectly();return;
   }
-  // Téléphone : revenir au partage natif (un seul clic sur Partager).
+  // Android : partager directement quand Google autorise web-share dans son iframe.
   if(typeof navigator.share!=='function'){
-    toast('Le partage direct est indisponible ici. Utilisez ↓ PNG.');return;
+    openMobileShareFallback();return;
   }
   const policy=document.permissionsPolicy||document.featurePolicy;
   try{
     if(policy?.allowsFeature?.('web-share')===false){
-      toast('Ce navigateur bloque le partage direct. Utilisez ↓ PNG.');return;
+      openMobileShareFallback();return;
     }
   }catch(e){}
   if(!(img.complete&&img.naturalWidth&&aerial.complete&&aerial.naturalWidth&&officialLogo.complete&&officialLogo.naturalWidth)){
     toast('Le visuel se prépare. Réessayez dans un instant.');return;
   }
   let file;
-  try {file=pngFileForShare();}
+  try{file=pngFileForShare();}
   catch(e){toast('Impossible de préparer le PNG. Utilisez ↓ PNG.');return;}
   if(navigator.canShare&&!navigator.canShare({files:[file]})){
-    toast('Le partage de ce PNG est indisponible ici. Utilisez ↓ PNG.');return;
+    openMobileShareFallback();return;
   }
   btn.disabled=true;btn.textContent='Ouverture du partage…';
   const reset=()=>{btn.disabled=false;btn.textContent='↗ Partager';};
   try{
-    // Appel synchrone dans le clic : préserve l'activation requise par Android.
     const sharing=navigator.share({
       files:[file],title:'Bilan de fin de journée · Entrepôt Valence',
       text:'Bilan UAG / UAD du '+dt($('date').value)
     });
     window.sharedHistoryPublish?.();
     Promise.resolve(sharing).catch(e=>{
-      if(e?.name!=='AbortError')
-        toast('Le partage est bloqué sur ce navigateur. Utilisez ↓ PNG.');
+      if(e?.name!=='AbortError'){
+        toast('Le partage natif est bloqué. Ouverture du partage de secours…');
+        openMobileShareFallback();
+      }
     }).finally(reset);
   }catch(e){
-    reset();toast('Le partage est bloqué sur ce navigateur. Utilisez ↓ PNG.');
+    reset();openMobileShareFallback();
   }
 });
 </script><script><?!= include("Premium") ?></script><script><?!= include("HistoryClient") ?></script></body></html>
