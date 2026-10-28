@@ -27,6 +27,8 @@
     button:disabled{opacity:.48;cursor:not-allowed}
     .action{font-weight:700}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid .action{display:flex;align-items:center;justify-content:center;min-height:51px;margin-top:0}
+    .grid .action[hidden]{display:none!important}
     .hint{font-size:13px;line-height:1.5;background:#f1f6f6;border-radius:10px;padding:11px;margin:12px 0}
     .hint strong{color:#17384d}
     .secondary{background:white;color:#23465b;border-color:#cbdce3}
@@ -47,11 +49,13 @@
       <h2>Teams ou e-mail</h2>
       <button class="primary" type="button" id="copy" disabled>Copier l’image du bilan</button>
       <p class="hint">1. Cliquez sur <strong>Copier l’image</strong>.<br>
-        2. Ouvrez Teams ou un nouveau mail.<br>
-        3. Collez l’image avec <strong>Ctrl + V</strong> dans votre message.</p>
+        2. Choisissez <strong>Gmail, Google Chat, Teams ou e-mail</strong> ci-dessous.<br>
+        3. Dans la conversation ou le nouveau message, collez avec <strong>Ctrl + V</strong>.</p>
       <div class="grid">
-        <a class="action" href="https://teams.microsoft.com/" target="_blank" rel="noopener noreferrer" id="teams" hidden>Ouvrir Teams</a>
-        <a class="action" href="#" id="email" hidden>Créer un e-mail</a>
+        <a class="action" href="https://mail.google.com/mail/" target="_blank" rel="noopener noreferrer" id="gmail" hidden>✉ Gmail</a>
+        <a class="action" href="https://chat.google.com/" target="_blank" rel="noopener noreferrer" id="chat" hidden>◉ Google Chat</a>
+        <a class="action" href="https://teams.microsoft.com/" target="_blank" rel="noopener noreferrer" id="teams" hidden>◉ Teams</a>
+        <a class="action" href="#" id="email" hidden>✉ E-mail / Outlook</a>
       </div>
     </section>
     <div class="line"></div>
