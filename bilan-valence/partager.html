@@ -9,62 +9,40 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Partager le bilan · Entrepôt Valence</title>
   <style>
+    :root{font-family:Arial,Helvetica,sans-serif;color:#163449;background:#f3f7f6;color-scheme:light}
     *{box-sizing:border-box}
-    body{font-family:Arial,Helvetica,sans-serif;background:#f3f7f6;color:#18384f;margin:0;
-      min-height:100vh;padding:22px 14px;display:grid;place-items:center}
-    main{background:#fff;border:1px solid #d7e6df;border-radius:18px;max-width:490px;width:100%;
-      padding:24px 21px;box-shadow:0 9px 24px rgba(24,56,79,.08)}
-    .eyebrow{font-size:12px;letter-spacing:.08em;font-weight:800;color:#187946}
-    h1{font-size:24px;margin:10px 0 8px}
-    p{line-height:1.5;color:#526f7b;margin:10px 0;font-size:14px}
-    #status{font-weight:600;color:#1a5b43}
-    .line{height:1px;background:#e1ebe7;margin:20px 0}
-    h2{font-size:16px;margin:0 0 8px;color:#16394e}
-    button,.action{display:block;width:100%;text-align:center;border-radius:10px;padding:13px 10px;
-      font:700 15px Arial,Helvetica,sans-serif;cursor:pointer;text-decoration:none;
-      border:1px solid #c8ded3;margin-top:9px;background:#f0f7f4;color:#164f34}
-    button.primary{background:#147b47;border-color:#147b47;color:white;font-size:17px}
-    button:disabled{opacity:.48;cursor:not-allowed}
-    .action{font-weight:700}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .grid .action{display:flex;align-items:center;justify-content:center;min-height:51px;margin-top:0}
-    .grid .action[hidden]{display:none!important}
-    .hint{font-size:13px;line-height:1.5;background:#f1f6f6;border-radius:10px;padding:11px;margin:12px 0}
-    .hint strong{color:#17384d}
-    .secondary{background:white;color:#23465b;border-color:#cbdce3}
-    .note{font-size:12px;color:#678087;line-height:1.5;border-top:1px solid #e2ecea;
-      padding-top:14px;margin-top:18px}
-    [hidden]{display:none!important}
-    @media(max-width:360px){.grid{grid-template-columns:1fr}}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:22px 14px}
+    main{background:white;border:1px solid #d5e6de;border-radius:18px;max-width:440px;width:100%;
+      padding:25px 21px;box-shadow:0 10px 30px rgba(9,35,55,.08)}
+    .eyebrow{color:#147847;font-size:12px;font-weight:800;letter-spacing:.07em}
+    h1{font-size:26px;line-height:1.15;margin:11px 0 12px}
+    p{color:#527080;font-size:14px;line-height:1.5}
+    #status{color:#166741;min-height:41px;font-weight:600}
+    .targets{display:grid;gap:12px;margin:20px 0}
+    button{font:700 17px Arial,Helvetica,sans-serif;border-radius:12px;border:1px solid #d2e4db;
+      width:100%;display:flex;align-items:center;justify-content:center;gap:13px;
+      padding:17px;background:#f5faf7;color:#173d50;cursor:pointer}
+    button:focus-visible{outline:3px solid #4a9d64;outline-offset:2px}
+    button:disabled{cursor:not-allowed;opacity:.52}
+    .mark{font-size:22px;line-height:1;display:grid;place-items:center;width:30px;height:30px;
+      border-radius:8px;background:white;border:1px solid #e3ebe8}
+    #gmail .mark{color:#c33f36}#chat .mark{color:#14864f}
+    .note{border-top:1px solid #e5eeea;padding-top:16px;margin-top:18px;font-size:12px}
+    .note strong{color:#173d50}
   </style>
   <script src="./partager.js" defer></script>
 </head>
 <body>
   <main>
-    <div class="eyebrow">ENTREPÔT VALENCE</div>
+    <div class="eyebrow">ENTREPÔT VALENCE · UAG / UAD</div>
     <h1>Partager le bilan</h1>
-    <p id="status" role="status" aria-live="polite">Préparation de votre image PNG…</p>
-
-    <section aria-label="Partager dans Teams ou dans un e-mail">
-      <h2>Teams ou e-mail</h2>
-      <button class="primary" type="button" id="copy" disabled>Copier l’image du bilan</button>
-      <p class="hint">1. Cliquez sur <strong>Copier l’image</strong>.<br>
-        2. Choisissez <strong>Gmail, Google Chat, Teams ou e-mail</strong> ci-dessous.<br>
-        3. Dans la conversation ou le nouveau message, collez avec <strong>Ctrl + V</strong>.</p>
-      <div class="grid">
-        <a class="action" href="https://mail.google.com/mail/" target="_blank" rel="noopener noreferrer" id="gmail" hidden>✉ Gmail</a>
-        <a class="action" href="https://chat.google.com/" target="_blank" rel="noopener noreferrer" id="chat" hidden>◉ Google Chat</a>
-        <a class="action" href="https://teams.microsoft.com/" target="_blank" rel="noopener noreferrer" id="teams" hidden>◉ Teams</a>
-        <a class="action" href="#" id="email" hidden>✉ E-mail / Outlook</a>
-      </div>
-    </section>
-    <div class="line"></div>
-    <section aria-label="Autres moyens de partager">
-      <h2>Autres possibilités</h2>
-      <button type="button" id="share" class="secondary" disabled>Choisir une application</button>
-      <a class="action secondary" id="download" href="#" download="Bilan_Valence.png" hidden>↓ Télécharger le PNG</a>
-    </section>
-    <p class="note">La copie et le partage s’effectuent sur votre appareil. L’image n’est pas enregistrée sur GitHub. Si votre ordinateur professionnel bloque la copie, téléchargez le PNG puis joignez-le à Teams ou à l’e-mail.</p>
+    <p id="status" role="status" aria-live="polite">Préparation du PNG…</p>
+    <div class="targets" aria-label="Choisissez votre application">
+      <button type="button" id="gmail" disabled><span class="mark">✉</span> Gmail</button>
+      <button type="button" id="chat" disabled><span class="mark">◉</span> Google Chat</button>
+    </div>
+    <p id="instructions" class="note">Sur <strong>Android</strong>, choisissez ensuite l’application dans le menu de partage si elle est installée. Sur <strong>ordinateur</strong>, le PNG sera téléchargé et Gmail ou Chat s’ouvrira : joignez le fichier, puis envoyez votre message. Aucun envoi automatique n’est effectué.</p>
+    <p class="note">Utilisez votre compte professionnel et choisissez un destinataire autorisé. L’image n’est pas enregistrée sur ce site.</p>
   </main>
 </body>
 </html>
