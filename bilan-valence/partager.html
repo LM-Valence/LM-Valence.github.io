@@ -11,19 +11,29 @@
   <style>
     *{box-sizing:border-box}
     body{font-family:Arial,Helvetica,sans-serif;background:#f3f7f6;color:#18384f;margin:0;
-      min-height:100vh;padding:24px 14px;display:grid;place-items:center}
-    main{background:white;border:1px solid #d7e6df;border-radius:18px;max-width:460px;width:100%;
-      padding:25px 19px;box-shadow:0 9px 24px rgba(24,56,79,.08)}
+      min-height:100vh;padding:22px 14px;display:grid;place-items:center}
+    main{background:#fff;border:1px solid #d7e6df;border-radius:18px;max-width:490px;width:100%;
+      padding:24px 21px;box-shadow:0 9px 24px rgba(24,56,79,.08)}
     .eyebrow{font-size:12px;letter-spacing:.08em;font-weight:800;color:#187946}
-    h1{font-size:24px;margin:10px 0 12px}
-    p{line-height:1.5;color:#526f7b;margin:10px 0;font-size:15px}
-    button,.fallback{display:block;width:100%;margin:18px 0 10px;text-align:center;border:0;
-      border-radius:11px;background:#137b47;color:#fff;padding:15px 10px;font-size:17px;
-      text-decoration:none;font-weight:800;cursor:pointer}
-    button:disabled{background:#b3c9bf;cursor:not-allowed}
-    .fallback{font-size:14px;background:#edf3f4;color:#1b4a60;margin-top:10px}
-    .note{font-size:12px;color:#678087;line-height:1.4;border-top:1px solid #e2ecea;padding-top:14px}
+    h1{font-size:24px;margin:10px 0 8px}
+    p{line-height:1.5;color:#526f7b;margin:10px 0;font-size:14px}
+    #status{font-weight:600;color:#1a5b43}
+    .line{height:1px;background:#e1ebe7;margin:20px 0}
+    h2{font-size:16px;margin:0 0 8px;color:#16394e}
+    button,.action{display:block;width:100%;text-align:center;border-radius:10px;padding:13px 10px;
+      font:700 15px Arial,Helvetica,sans-serif;cursor:pointer;text-decoration:none;
+      border:1px solid #c8ded3;margin-top:9px;background:#f0f7f4;color:#164f34}
+    button.primary{background:#147b47;border-color:#147b47;color:white;font-size:17px}
+    button:disabled{opacity:.48;cursor:not-allowed}
+    .action{font-weight:700}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .hint{font-size:13px;line-height:1.5;background:#f1f6f6;border-radius:10px;padding:11px;margin:12px 0}
+    .hint strong{color:#17384d}
+    .secondary{background:white;color:#23465b;border-color:#cbdce3}
+    .note{font-size:12px;color:#678087;line-height:1.5;border-top:1px solid #e2ecea;
+      padding-top:14px;margin-top:18px}
     [hidden]{display:none!important}
+    @media(max-width:360px){.grid{grid-template-columns:1fr}}
   </style>
   <script src="./partager.js" defer></script>
 </head>
@@ -31,10 +41,26 @@
   <main>
     <div class="eyebrow">ENTREPÔT VALENCE</div>
     <h1>Partager le bilan</h1>
-    <p id="status" role="status">Préparation de votre image PNG…</p>
-    <button type="button" id="share" disabled>↗ Partager le PNG</button>
-    <a class="fallback" id="download" href="#" download="Bilan_Valence.png" hidden>↓ Télécharger le PNG</a>
-    <p class="note">La page reçoit uniquement l'image créée sur votre appareil. Aucune donnée du bilan n'est envoyée ni enregistrée sur GitHub. La transmission au destinataire n'a lieu qu'après votre choix dans Android.</p>
+    <p id="status" role="status" aria-live="polite">Préparation de votre image PNG…</p>
+
+    <section aria-label="Partager dans Teams ou dans un e-mail">
+      <h2>Teams ou e-mail</h2>
+      <button class="primary" type="button" id="copy" disabled>Copier l’image du bilan</button>
+      <p class="hint">1. Cliquez sur <strong>Copier l’image</strong>.<br>
+        2. Ouvrez Teams ou un nouveau mail.<br>
+        3. Collez l’image avec <strong>Ctrl + V</strong> dans votre message.</p>
+      <div class="grid">
+        <a class="action" href="https://teams.microsoft.com/" target="_blank" rel="noopener noreferrer" id="teams" hidden>Ouvrir Teams</a>
+        <a class="action" href="#" id="email" hidden>Créer un e-mail</a>
+      </div>
+    </section>
+    <div class="line"></div>
+    <section aria-label="Autres moyens de partager">
+      <h2>Autres possibilités</h2>
+      <button type="button" id="share" class="secondary" disabled>Choisir une application</button>
+      <a class="action secondary" id="download" href="#" download="Bilan_Valence.png" hidden>↓ Télécharger le PNG</a>
+    </section>
+    <p class="note">La copie et le partage s’effectuent sur votre appareil. L’image n’est pas enregistrée sur GitHub. Si votre ordinateur professionnel bloque la copie, téléchargez le PNG puis joignez-le à Teams ou à l’e-mail.</p>
   </main>
 </body>
 </html>
