@@ -261,9 +261,46 @@ $('copyShareLink').addEventListener('click',async()=>{
  }
 });
 $('share').addEventListener('click',()=>{
-  // Une seule entrée sur ordinateur et téléphone : choisir Gmail ou Google Chat.
-  // Les liens web ne peuvent pas joindre automatiquement le PNG dans ces services.
-  if($('share').disabled)return;
-  openChromeDirectly();
+  const btn=$('share');
+  if(btn.disabled)return;
+  // Ordinateur : conserver exactement le parcours Gmail / Google Chat validé.
+  if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    openChromeDirectly();return;
+  }
+  // Téléphone : revenir au partage natif (un seul clic sur Partager).
+  if(typeof navigator.share!=='function'){
+    toast('Le partage direct est indisponible ici. Utilisez ↓ PNG.');return;
+  }
+  const policy=document.permissionsPolicy||document.featurePolicy;
+  try{
+    if(policy?.allowsFeature?.('web-share')===false){
+      toast('Ce navigateur bloque le partage direct. Utilisez ↓ PNG.');return;
+    }
+  }catch(e){}
+  if(!(img.complete&&img.naturalWidth&&aerial.complete&&aerial.naturalWidth&&officialLogo.complete&&officialLogo.naturalWidth)){
+    toast('Le visuel se prépare. Réessayez dans un instant.');return;
+  }
+  let file;
+  try {file=pngFileForShare();}
+  catch(e){toast('Impossible de préparer le PNG. Utilisez ↓ PNG.');return;}
+  if(navigator.canShare&&!navigator.canShare({files:[file]})){
+    toast('Le partage de ce PNG est indisponible ici. Utilisez ↓ PNG.');return;
+  }
+  btn.disabled=true;btn.textContent='Ouverture du partage…';
+  const reset=()=>{btn.disabled=false;btn.textContent='↗ Partager';};
+  try{
+    // Appel synchrone dans le clic : préserve l'activation requise par Android.
+    const sharing=navigator.share({
+      files:[file],title:'Bilan de fin de journée · Entrepôt Valence',
+      text:'Bilan UAG / UAD du '+dt($('date').value)
+    });
+    window.sharedHistoryPublish?.();
+    Promise.resolve(sharing).catch(e=>{
+      if(e?.name!=='AbortError')
+        toast('Le partage est bloqué sur ce navigateur. Utilisez ↓ PNG.');
+    }).finally(reset);
+  }catch(e){
+    reset();toast('Le partage est bloqué sur ce navigateur. Utilisez ↓ PNG.');
+  }
 });
 </script><script><?!= include("Premium") ?></script><script><?!= include("HistoryClient") ?></script></body></html>
