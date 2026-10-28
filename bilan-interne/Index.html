@@ -270,7 +270,11 @@ $('share').addEventListener('click',()=>{
    if(policy&&typeof policy.allowsFeature==='function')
      blockedByFrame=policy.allowsFeature('web-share')===false;
  }catch(e){}
- if(typeof navigator.share!=='function'||blockedByFrame){
+ // Sur ordinateur, proposer directement Gmail, Chat, Teams et e-mail :
+ // le menu de partage Windows ne permet pas d'y ajouter nos propres choix.
+ // Sur Android et iPhone, conserver le partage natif quand il fonctionne.
+ if(!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    typeof navigator.share!=='function'||blockedByFrame){
    openChromeDirectly();return;
  }
  try{
