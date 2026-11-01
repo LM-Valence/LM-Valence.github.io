@@ -251,8 +251,7 @@ renderCanvas = function renderPremiumBilan(){
   function preparation(x,side,color,fill,w){
     const data=[
       ['Prises restantes',fnum(num(side+'_picks')),'box'],
-      ['Heures restantes',num(side+'_hours')==null?'—':fnum(num(side+'_hours'))+' h','clock'],
-      ['Fin prévue demain',hour(side+'_end'),'flag']
+      ['Heures restantes',num(side+'_hours')==null?'—':fnum(num(side+'_hours'))+' h','clock']
     ];
     data.forEach(([label,value,icon],i)=>{
       const y=301+i*81;
@@ -261,6 +260,14 @@ renderCanvas = function renderPremiumBilan(){
       fit(label,x+60,y+36,w-208,17,P.ink,600,'left',13);
       fit(value,x+w-14,y+39,164,35,color,800,'right',23);
     });
+    // Troisième ligne : date et heure explicites, sans jamais supposer « demain ».
+    const y=463,f=forecast(side);
+    rr(x,y,w,76,9,fill);
+    drawIcon('flag',x+15,y+20,34,color);
+    fit('Fin de préparation',x+60,y+24,w-213,17,P.ink,650,'left',12);
+    txt('Échéance prévue',x+60,y+54,12,P.muted,500);
+    fit(shortEndDate(f.date),x+w-14,y+22,160,18,color,700,'right',13);
+    fit(f.time?f.time.replace(':','h'):'—',x+w-14,y+53,160,28,color,800,'right',20);
   }
   preparation(807,'l',P.green,P.greenBg,368);
   preparation(1199,'r',P.blue,P.blueBg,375);
@@ -273,7 +280,7 @@ renderCanvas = function renderPremiumBilan(){
   const kpis=[
     ['PRISES RESTANTES  ·  TOTAL',fnum(totalPicks),'box'],
     ['HEURES RESTANTES  ·  TOTAL',totalHours==null?'—':fnum(totalHours)+' h','clock'],
-    ['FIN PRÉVISIONNELLE  ·  DEMAIN',hour('globalEnd'),'flag']
+    ['FIN PRÉVISIONNELLE  ·  GLOBALE',globalForecast().label,'flag']
   ];
   kpis.forEach(([label,value,icon],i)=>{
     const x=35+i*515;
